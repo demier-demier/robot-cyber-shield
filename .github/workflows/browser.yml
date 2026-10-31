@@ -1,0 +1,46 @@
+name: Browser verifier and visual evidence
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser-verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install pinned official wasm-bindgen binary
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-x86_64-unknown-linux-musl.tar.gz --output /tmp/wasm-bindgen.tar.gz
+          echo '9687f3bb551b9f66f37ed32a40d7913a00f7962db653054e56857bc306c3227f  /tmp/wasm-bindgen.tar.gz' | sha256sum --check
+          tar -xzf /tmp/wasm-bindgen.tar.gz -C /tmp
+          echo '/tmp/wasm-bindgen-0.2.130-x86_64-unknown-linux-musl' >> "$GITHUB_PATH"
+      - name: Rebuild browser artifacts from shared Rust core
+        run: bash scripts/build_browser.sh
+      - name: Execute actual WebAssembly and browser engine
+        run: |
+          node tests/browser_wasm.mjs
+          node --experimental-default-type=module tests/browser_engine.mjs
+          node --experimental-vm-modules tests/browser_app_state.mjs
+          python -m unittest discover -s tests -p 'test_demo_evidence.py' -v
+      - name: Check UI module syntax
+        run: |
+          node --check web/app.js
+          node --check web/scene.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-browser-artifacts
+          path: web/wasm/
+          retention-days: 14

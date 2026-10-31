@@ -2,14 +2,14 @@
 //! Signed capabilities and bounded command/data policy, not a safety-rated controller.
 use anyhow::{anyhow, ensure, Result};
 use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
-use rusqlite::{params, Connection, OptionalExtension, TransactionBehavior};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::{collections::BTreeSet, fs, path::Path, time::Duration};
+use std::collections::{BTreeMap, BTreeSet};
 
 pub const MAX_INPUT_BYTES: usize = 64 * 1024;
 const MAX_GRANTS: i64 = 4096;
 const MAX_REVOCATIONS: i64 = 4096;
+#[cfg(feature = "native")]
 const MAX_AUDIT_EVENTS: i64 = 2048;
 const GRANT_DOMAIN: &[u8] = b"robot-cyber-shield/grant/v1\0";
 const REQUEST_DOMAIN: &[u8] = b"robot-cyber-shield/request/v1\0";
@@ -309,362 +309,256 @@ fn valid_signature<T: Serialize>(
 fn hash<T: Serialize>(value: &T) -> Result<String> {
     Ok(hex::encode(Sha256::digest(serde_json::to_vec(value)?)))
 }
-fn private_database(path: &Path) -> Result<Connection> {
-    check_database_files(path)?;
-    if path.exists() {
-        let meta = fs::symlink_metadata(path)?;
-        ensure!(
-            meta.file_type().is_file(),
-            "State must be a regular non-symlink file"
-        );
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            ensure!(
-                meta.permissions().mode() & 0o077 == 0,
-                "State permissions must be private"
-            );
-        }
-    } else {
-        let mut options = fs::OpenOptions::new();
-        options.write(true).create_new(true);
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::OpenOptionsExt;
-            options.mode(0o600);
-        }
-        options.open(path)?;
-    }
-    let connection = Connection::open(path)?;
-    connection.busy_timeout(Duration::from_secs(2))?;
-    connection.execute_batch("PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA max_page_count=16384; PRAGMA wal_autocheckpoint=256; PRAGMA journal_size_limit=8388608; CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY,value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS counters (grant_id TEXT PRIMARY KEY, fingerprint TEXT NOT NULL, sequence INTEGER NOT NULL,last_ms INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS revocations (grant_id TEXT PRIMARY KEY); CREATE TABLE IF NOT EXISTS audit_events (id INTEGER PRIMARY KEY AUTOINCREMENT, time_ms INTEGER NOT NULL, allowed INTEGER NOT NULL, reason TEXT NOT NULL, input_sha256 TEXT NOT NULL);")?;
-    check_database_files(path)?;
-    Ok(connection)
+
+#[cfg(feature = "native")]
+mod native;
+#[cfg(feature = "native")]
+pub use native::{audit, revoke, AuditEvent, Guard};
+
+struct Verified {
+    grant_id: String,
+    fingerprint: String,
+    sequence: u64,
+    is_command: bool,
+    decision: Decision,
 }
-fn check_database_files(path: &Path) -> Result<()> {
-    for suffix in ["", "-wal", "-shm", "-journal"] {
-        let mut name = path.as_os_str().to_os_string();
-        name.push(suffix);
-        let path = std::path::PathBuf::from(name);
-        match fs::symlink_metadata(&path) {
-            Ok(meta) => {
-                ensure!(
-                    meta.file_type().is_file(),
-                    "Database sidecar must be regular"
-                );
-                #[cfg(unix)]
-                {
-                    use std::os::unix::fs::PermissionsExt;
-                    ensure!(
-                        meta.permissions().mode() & 0o077 == 0,
-                        "Database sidecar permissions must be private"
-                    );
-                }
+
+/// Shared cryptographic, identity, freshness, numeric and data projection checks.
+/// Both the native SQLite guard and browser in-memory adapter call this function.
+fn verify_request(
+    policy: &Policy,
+    authority: &VerifyingKey,
+    envelope: Envelope,
+    now: u64,
+) -> std::result::Result<Verified, &'static str> {
+    let (grant, request, signature) = match envelope {
+        Envelope::Command {
+            grant,
+            request,
+            request_signature,
+        } => (grant, Request::Command(request), request_signature),
+        Envelope::Telemetry {
+            grant,
+            request,
+            request_signature,
+        } => (grant, Request::Telemetry(request), request_signature),
+    };
+    let deny = |reason: &'static str| Err(reason);
+    let claims = &grant.claims;
+    if claims.validate().is_err()
+        || !valid_signature(authority, &grant.signature, GRANT_DOMAIN, claims)
+    {
+        return deny("invalid_grant");
+    }
+    let holder = public_key(&claims.holder_public_key).map_err(|_| "invalid_grant")?;
+    if !valid_signature(&holder, &signature, REQUEST_DOMAIN, &(&grant, &request)) {
+        return deny("invalid_request_signature");
+    }
+    let (robot, session, principal, sequence, issued, capability, expected_principal) =
+        match &request {
+            Request::Command(r) => (
+                &r.robot_id,
+                &r.session_id,
+                &r.principal,
+                r.sequence,
+                r.issued_at_ms,
+                Capability::Command,
+                &policy.command_principal,
+            ),
+            Request::Telemetry(r) => (
+                &r.robot_id,
+                &r.session_id,
+                &r.principal,
+                r.sequence,
+                r.issued_at_ms,
+                Capability::Telemetry,
+                &policy.telemetry_principal,
+            ),
+        };
+    if robot != &policy.robot_id
+        || robot != &claims.robot_id
+        || session != &policy.session_id
+        || session != &claims.session_id
+        || principal != expected_principal
+        || principal != &claims.principal
+    {
+        return deny("identity_scope");
+    }
+    if !claims.capabilities.contains(&capability) {
+        return deny("capability_scope");
+    }
+    if now < claims.not_before_ms
+        || now >= claims.expires_at_ms
+        || claims.expires_at_ms - claims.not_before_ms > policy.max_grant_ttl_ms
+    {
+        return deny("grant_time");
+    }
+    if issued < claims.not_before_ms
+        || issued > now
+        || now - issued >= policy.max_request_age_ms
+        || now > i64::MAX as u64
+        || sequence == 0
+        || sequence > i64::MAX as u64
+    {
+        return deny("request_time_or_sequence");
+    }
+    let mut decision = Decision {
+        schema: "robot-decision/v1".into(),
+        allowed: true,
+        reason: "authorized".into(),
+        command: None,
+        telemetry: None,
+    };
+    match &request {
+        Request::Command(r) => {
+            if !r.linear_mps.is_finite()
+                || !r.angular_rps.is_finite()
+                || r.linear_mps.abs() > policy.max_linear_mps.min(claims.max_linear_mps)
+                || r.angular_rps.abs() > policy.max_angular_rps.min(claims.max_angular_rps)
+            {
+                return deny("motion_limit");
             }
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
-            Err(e) => return Err(e.into()),
+            let valid_until_ms = now
+                .saturating_add(policy.command_lease_ms)
+                .min(issued.saturating_add(policy.max_request_age_ms))
+                .min(claims.expires_at_ms);
+            decision.command = Some(AuthorizedCommand {
+                robot_id: robot.clone(),
+                session_id: session.clone(),
+                grant_id: claims.grant_id.clone(),
+                sequence,
+                linear_mps: r.linear_mps,
+                angular_rps: r.angular_rps,
+                valid_until_ms,
+            });
+        }
+        Request::Telemetry(r) => {
+            if r.battery_percent > 100
+                || !r.position_x_m.is_finite()
+                || !r.position_y_m.is_finite()
+                || r.position_x_m.abs() > 1_000_000.0
+                || r.position_y_m.abs() > 1_000_000.0
+                || [&r.raw_camera, &r.raw_audio, &r.operator_identity]
+                    .into_iter()
+                    .flatten()
+                    .any(|x| x.len() > 16 * 1024)
+            {
+                return deny("telemetry_limit");
+            }
+            decision.telemetry = Some(MinimalTelemetry {
+                robot_id: robot.clone(),
+                status: r.status.clone(),
+                battery_percent: r.battery_percent,
+                position_cell_x: (r.position_x_m / policy.position_grid_m).floor() as i64,
+                position_cell_y: (r.position_y_m / policy.position_grid_m).floor() as i64,
+                position_grid_m: policy.position_grid_m,
+            });
         }
     }
-    Ok(())
+    Ok(Verified {
+        grant_id: claims.grant_id.clone(),
+        fingerprint: hash(claims).map_err(|_| "invalid_grant")?,
+        sequence,
+        is_command: matches!(request, Request::Command(_)),
+        decision,
+    })
 }
-fn append_audit(db: &Connection, now: u64, decision: &Decision, digest: &str) -> Result<()> {
-    db.execute(
-        "INSERT INTO audit_events(time_ms,allowed,reason,input_sha256) VALUES(?1,?2,?3,?4)",
-        params![
-            now.min(i64::MAX as u64) as i64,
-            decision.allowed,
-            decision.reason,
-            digest
-        ],
-    )?;
-    db.execute(
-        "DELETE FROM audit_events WHERE id <= (SELECT MAX(id)-?1 FROM audit_events)",
-        [MAX_AUDIT_EVENTS],
-    )?;
-    Ok(())
+
+struct Admission {
+    fingerprint: String,
+    sequence: u64,
+    last_ms: u64,
 }
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AuditEvent {
-    pub id: i64,
-    pub time_ms: u64,
-    pub allowed: bool,
-    pub reason: String,
-    pub input_sha256: String,
+
+fn admission_denial(
+    policy: &Policy,
+    request: &Verified,
+    previous: Option<&Admission>,
+    revoked: bool,
+    count: usize,
+    now: u64,
+) -> Option<Decision> {
+    let reason = if revoked {
+        Some("revoked")
+    } else if let Some(previous) = previous {
+        if previous.fingerprint != request.fingerprint {
+            Some("grant_id_reused")
+        } else if request.sequence <= previous.sequence {
+            Some("replay")
+        } else if now < previous.last_ms {
+            Some("clock_rollback")
+        } else if request.is_command && now - previous.last_ms < policy.min_command_interval_ms {
+            Some("rate_limit")
+        } else {
+            None
+        }
+    } else if count >= MAX_GRANTS as usize {
+        Some("state_budget")
+    } else {
+        None
+    };
+    reason.map(Decision::deny)
 }
-pub fn audit(path: &Path, limit: u32) -> Result<Vec<AuditEvent>> {
-    ensure!(path.exists(), "State must exist");
-    ensure!((1..=2048).contains(&limit), "Audit limit must be 1..2048");
-    let db = private_database(path)?;
-    let mut stmt = db.prepare(
-        "SELECT id,time_ms,allowed,reason,input_sha256 FROM audit_events ORDER BY id DESC LIMIT ?1",
-    )?;
-    let rows = stmt.query_map([limit], |r| {
-        Ok(AuditEvent {
-            id: r.get(0)?,
-            time_ms: r.get::<_, i64>(1)? as u64,
-            allowed: r.get(2)?,
-            reason: r.get(3)?,
-            input_sha256: r.get(4)?,
-        })
-    })?;
-    Ok(rows.collect::<rusqlite::Result<Vec<_>>>()?)
-}
-pub struct Guard {
-    db: Connection,
+
+/// In-memory adapter for a public demonstration. It is not durable storage,
+/// a ROS participant, an audit ledger, or a security boundary against its user.
+/// The policy/signature/projection/admission checks are shared with `Guard`.
+pub struct MemoryGuard {
     policy: Policy,
     authority: VerifyingKey,
+    counters: BTreeMap<String, Admission>,
+    revocations: BTreeSet<String>,
 }
-impl Guard {
-    pub fn open(path: &Path, policy: Policy, authority: VerifyingKey) -> Result<Self> {
+impl MemoryGuard {
+    pub fn new(policy: Policy, authority: VerifyingKey) -> Result<Self> {
         policy.validate()?;
-        let mut db = private_database(path)?;
-        let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
-        for (key, value) in [
-            ("policy", hash(&policy)?),
-            ("authority", hex::encode(authority.to_bytes())),
-        ] {
-            let current: Option<String> = tx
-                .query_row("SELECT value FROM metadata WHERE key=?1", [key], |r| {
-                    r.get(0)
-                })
-                .optional()?;
-            if let Some(current) = current {
-                ensure!(
-                    current == value,
-                    "State is bound to a different policy or authority"
-                );
-            } else {
-                tx.execute(
-                    "INSERT INTO metadata(key,value) VALUES(?1,?2)",
-                    params![key, value],
-                )?;
-            }
-        }
-        tx.commit()?;
         Ok(Self {
-            db,
             policy,
             authority,
+            counters: BTreeMap::new(),
+            revocations: BTreeSet::new(),
         })
     }
-    pub fn process(&mut self, raw: &[u8], now_ms: u64) -> Decision {
-        // An over-budget frame is fingerprinted only through the bounded prefix.
-        let digest = hex::encode(Sha256::digest(&raw[..raw.len().min(MAX_INPUT_BYTES + 1)]));
-        let decision = if raw.len() > MAX_INPUT_BYTES {
-            Decision::deny("input_budget")
-        } else if let Ok(envelope) = serde_json::from_slice::<Envelope>(raw) {
-            self.authorize(envelope, now_ms, &digest)
-                .unwrap_or_else(|_| Decision::deny("state_unavailable"))
-        } else {
-            Decision::deny("invalid_schema")
-        };
-        if !decision.allowed {
-            let audit_result = (|| -> Result<()> {
-                let tx = self
-                    .db
-                    .transaction_with_behavior(TransactionBehavior::Immediate)?;
-                append_audit(&tx, now_ms, &decision, &digest)?;
-                tx.commit()?;
-                Ok(())
-            })();
-            if audit_result.is_err() {
-                return Decision::deny("state_unavailable");
-            }
+    pub fn process(&mut self, raw: &[u8], now: u64) -> Decision {
+        if raw.len() > MAX_INPUT_BYTES {
+            return Decision::deny("input_budget");
         }
-        decision
+        let envelope = match serde_json::from_slice::<Envelope>(raw) {
+            Ok(envelope) => envelope,
+            Err(_) => return Decision::deny("invalid_schema"),
+        };
+        let verified = match verify_request(&self.policy, &self.authority, envelope, now) {
+            Ok(verified) => verified,
+            Err(reason) => return Decision::deny(reason),
+        };
+        if let Some(denial) = admission_denial(
+            &self.policy,
+            &verified,
+            self.counters.get(&verified.grant_id),
+            self.revocations.contains(&verified.grant_id),
+            self.counters.len(),
+            now,
+        ) {
+            return denial;
+        }
+        self.counters.insert(
+            verified.grant_id,
+            Admission {
+                fingerprint: verified.fingerprint,
+                sequence: verified.sequence,
+                last_ms: now,
+            },
+        );
+        verified.decision
     }
-    fn authorize(&mut self, envelope: Envelope, now: u64, digest: &str) -> Result<Decision> {
-        let (grant, request, signature) = match envelope {
-            Envelope::Command {
-                grant,
-                request,
-                request_signature,
-            } => (grant, Request::Command(request), request_signature),
-            Envelope::Telemetry {
-                grant,
-                request,
-                request_signature,
-            } => (grant, Request::Telemetry(request), request_signature),
-        };
-        let deny = |reason: &str| Ok(Decision::deny(reason));
-        let claims = &grant.claims;
-        if claims.validate().is_err()
-            || !valid_signature(&self.authority, &grant.signature, GRANT_DOMAIN, claims)
-        {
-            return deny("invalid_grant");
-        }
-        let holder = public_key(&claims.holder_public_key)?;
-        if !valid_signature(&holder, &signature, REQUEST_DOMAIN, &(&grant, &request)) {
-            return deny("invalid_request_signature");
-        }
-        let (robot, session, principal, sequence, issued, capability, expected_principal) =
-            match &request {
-                Request::Command(r) => (
-                    &r.robot_id,
-                    &r.session_id,
-                    &r.principal,
-                    r.sequence,
-                    r.issued_at_ms,
-                    Capability::Command,
-                    &self.policy.command_principal,
-                ),
-                Request::Telemetry(r) => (
-                    &r.robot_id,
-                    &r.session_id,
-                    &r.principal,
-                    r.sequence,
-                    r.issued_at_ms,
-                    Capability::Telemetry,
-                    &self.policy.telemetry_principal,
-                ),
-            };
-        if robot != &self.policy.robot_id
-            || robot != &claims.robot_id
-            || session != &self.policy.session_id
-            || session != &claims.session_id
-            || principal != expected_principal
-            || principal != &claims.principal
-        {
-            return deny("identity_scope");
-        }
-        if !claims.capabilities.contains(&capability) {
-            return deny("capability_scope");
-        }
-        if now < claims.not_before_ms
-            || now >= claims.expires_at_ms
-            || claims.expires_at_ms - claims.not_before_ms > self.policy.max_grant_ttl_ms
-        {
-            return deny("grant_time");
-        }
-        if issued < claims.not_before_ms
-            || issued > now
-            || now - issued >= self.policy.max_request_age_ms
-            || now > i64::MAX as u64
-            || sequence == 0
-            || sequence > i64::MAX as u64
-        {
-            return deny("request_time_or_sequence");
-        }
-        let mut decision = Decision {
-            schema: "robot-decision/v1".into(),
-            allowed: true,
-            reason: "authorized".into(),
-            command: None,
-            telemetry: None,
-        };
-        match &request {
-            Request::Command(r) => {
-                if !r.linear_mps.is_finite()
-                    || !r.angular_rps.is_finite()
-                    || r.linear_mps.abs() > self.policy.max_linear_mps.min(claims.max_linear_mps)
-                    || r.angular_rps.abs() > self.policy.max_angular_rps.min(claims.max_angular_rps)
-                {
-                    return deny("motion_limit");
-                }
-                let valid_until_ms = now
-                    .saturating_add(self.policy.command_lease_ms)
-                    .min(issued.saturating_add(self.policy.max_request_age_ms))
-                    .min(claims.expires_at_ms);
-                decision.command = Some(AuthorizedCommand {
-                    robot_id: robot.clone(),
-                    session_id: session.clone(),
-                    grant_id: claims.grant_id.clone(),
-                    sequence,
-                    linear_mps: r.linear_mps,
-                    angular_rps: r.angular_rps,
-                    valid_until_ms,
-                });
-            }
-            Request::Telemetry(r) => {
-                if r.battery_percent > 100
-                    || !r.position_x_m.is_finite()
-                    || !r.position_y_m.is_finite()
-                    || r.position_x_m.abs() > 1_000_000.0
-                    || r.position_y_m.abs() > 1_000_000.0
-                    || [&r.raw_camera, &r.raw_audio, &r.operator_identity]
-                        .into_iter()
-                        .flatten()
-                        .any(|x| x.len() > 16 * 1024)
-                {
-                    return deny("telemetry_limit");
-                }
-                decision.telemetry = Some(MinimalTelemetry {
-                    robot_id: robot.clone(),
-                    status: r.status.clone(),
-                    battery_percent: r.battery_percent,
-                    position_cell_x: (r.position_x_m / self.policy.position_grid_m).floor() as i64,
-                    position_cell_y: (r.position_y_m / self.policy.position_grid_m).floor() as i64,
-                    position_grid_m: self.policy.position_grid_m,
-                });
-            }
-        }
-        let tx = self
-            .db
-            .transaction_with_behavior(TransactionBehavior::Immediate)?;
-        let revoked: bool = tx.query_row(
-            "SELECT EXISTS(SELECT 1 FROM revocations WHERE grant_id=?1)",
-            [&claims.grant_id],
-            |r| r.get(0),
-        )?;
-        if revoked {
-            return deny("revoked");
-        }
-        let fingerprint = hash(claims)?;
-        let previous: Option<(String, i64, i64)> = tx
-            .query_row(
-                "SELECT fingerprint,sequence,last_ms FROM counters WHERE grant_id=?1",
-                [&claims.grant_id],
-                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
-            )
-            .optional()?;
-        if let Some((old_fingerprint, old_sequence, last_ms)) = previous {
-            if old_fingerprint != fingerprint {
-                return deny("grant_id_reused");
-            }
-            if sequence <= old_sequence as u64 {
-                return deny("replay");
-            }
-            if now < last_ms as u64 {
-                return deny("clock_rollback");
-            }
-            if matches!(request, Request::Command(_))
-                && now - (last_ms as u64) < self.policy.min_command_interval_ms
-            {
-                return deny("rate_limit");
-            }
-        } else {
-            let count: i64 = tx.query_row("SELECT COUNT(*) FROM counters", [], |r| r.get(0))?;
-            if count >= MAX_GRANTS {
-                return deny("state_budget");
-            }
-        }
-        tx.execute("INSERT INTO counters(grant_id,fingerprint,sequence,last_ms) VALUES(?1,?2,?3,?4) ON CONFLICT(grant_id) DO UPDATE SET sequence=excluded.sequence,last_ms=excluded.last_ms",params![claims.grant_id,fingerprint,sequence as i64,now as i64])?;
-        append_audit(&tx, now, &decision, digest)?;
-        tx.commit()?;
-        // Persist authorization before exposing output: crash between commit and
-        // publication is uncertain delivery, never an excuse to replay a command.
-        Ok(decision)
+    pub fn revoke(&mut self, grant_id: &str) -> Result<()> {
+        ensure!(identifier(grant_id), "Invalid grant ID");
+        ensure!(
+            self.revocations.contains(grant_id)
+                || self.revocations.len() < MAX_REVOCATIONS as usize,
+            "Revocation budget exhausted"
+        );
+        self.revocations.insert(grant_id.to_string());
+        Ok(())
     }
-}
-pub fn revoke(path: &Path, grant_id: &str) -> Result<()> {
-    ensure!(identifier(grant_id), "Invalid grant ID");
-    ensure!(path.exists(), "State must exist before revocation");
-    let mut db = private_database(path)?;
-    let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
-    let exists: bool = tx.query_row(
-        "SELECT EXISTS(SELECT 1 FROM revocations WHERE grant_id=?1)",
-        [grant_id],
-        |r| r.get(0),
-    )?;
-    let count: i64 = tx.query_row("SELECT COUNT(*) FROM revocations", [], |r| r.get(0))?;
-    ensure!(
-        exists || count < MAX_REVOCATIONS,
-        "Revocation budget exhausted"
-    );
-    tx.execute(
-        "INSERT OR IGNORE INTO revocations(grant_id) VALUES(?1)",
-        [grant_id],
-    )?;
-    tx.commit()?;
-    Ok(())
 }

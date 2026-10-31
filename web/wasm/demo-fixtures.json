@@ -1,0 +1,1345 @@
+{
+  "schema": "robot-shield-browser-fixtures/v1",
+  "logical_now_ms": 1000000,
+  "clock": "recorded_mission_clock",
+  "state_persistence": "memory",
+  "authority_public_key": "4f83cd6bad17b857d6b35ccef0d6a2211adf73a729658df33501c7598b173055",
+  "policy": {
+    "schema": "robot-policy/v1",
+    "robot_id": "demo-rover",
+    "session_id": "demo-mission",
+    "command_principal": "planner",
+    "telemetry_principal": "sensor",
+    "max_linear_mps": 0.5,
+    "max_angular_rps": 0.8,
+    "max_request_age_ms": 2000,
+    "max_grant_ttl_ms": 3600000,
+    "min_command_interval_ms": 10,
+    "command_lease_ms": 250,
+    "position_grid_m": 5.0
+  },
+  "provenance": "Original synthetic signed fixtures. Private signing keys discarded after generation. Never use these grants with a real robot.",
+  "scenarios": {
+    "authorized": {
+      "steps": [
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 1,
+              "issued_at_ms": 1000000,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "2c9dbcee3a21e2bbf73bf830de2e1199ce1003e09c1129e39b1d30d30c77e8b00e050803531527e151b3f34d03c89d8cf75f705bb239f53f8b0b10793d9f7901"
+          },
+          "now_ms": 1000000
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 2,
+              "issued_at_ms": 1000100,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "0b3b10535bb1b31f83959eb972545cdd42f2de13053d17e16d6de7cefe3863d8038c37432a128d8b479dd026972f9d56208c3ac88b8723eb83d00f2039837106"
+          },
+          "now_ms": 1000100
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 3,
+              "issued_at_ms": 1000200,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "2c31f73a7fb0e376a33a52728c7b11ae9d275e920993b47d03b75ade3c64f3d9dbf4395d18ea25396f0d9990357097ea0783a59fee826b1584c19470166e8200"
+          },
+          "now_ms": 1000200
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 4,
+              "issued_at_ms": 1000300,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "678866ba8dc67c66b30e0365ad44e4094ee8ce1d8f3f692b7a571a836ddbaa7de05c8a797a871801509c93b4d00f4e23ddb42e116acda0781632967a1fde8a0f"
+          },
+          "now_ms": 1000300
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 5,
+              "issued_at_ms": 1000400,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "dd9572979d1dd8c56448fb73ac8db266bcf562890f076109bc5bcf75d71237bc8f4ecac92a246c96f06c595da04144a954057dde3c0610d9e54356fd64d2e50c"
+          },
+          "now_ms": 1000400
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 6,
+              "issued_at_ms": 1000500,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "97301e687cdafeb67c736e5b125fbf37c28c0f4f32e02e233549e0b0d07304c9aaa351439a659a194ae459227cc134d88275243b0c92c03fb98e8f3e73616a0d"
+          },
+          "now_ms": 1000500
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 7,
+              "issued_at_ms": 1000600,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "82f0563d8e72b7eadf74c85a63b2db5ad66cd0ead34b2c64e16cf3792a9ba3a0255b03af8fb7c155e52301ee7678ac6373c0c5e431f1368d7a2950e980ef3c0b"
+          },
+          "now_ms": 1000600
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 8,
+              "issued_at_ms": 1000700,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "c3e762491f124e9c5b6f4a4ab2eb0db15e26c98a6b68f1bda4ea6ba5b338fe27909ec9a1d35647c346a8b7e2c235fb25a7ce51518b98c5261785af2867504004"
+          },
+          "now_ms": 1000700
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 9,
+              "issued_at_ms": 1000800,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "965aca792e5e10233b7c1a23c7460b8158ea076271f03f47f7dbe2b863d5cd2b24a75464e5c02a2972cdb2f6d23a06d383812f852ee5ce3fae2a050a6266a303"
+          },
+          "now_ms": 1000800
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 10,
+              "issued_at_ms": 1000900,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "8a96f6f700fb3897b76eb27530c64a738cd80fc3600f77bb26745cf890f444eb1222f1d674fe134c278a9ac3ee2230d12011f0a044ac3f03b911e1d92d958908"
+          },
+          "now_ms": 1000900
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 11,
+              "issued_at_ms": 1001000,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "3838928e452db136dcc7b7e658b80222d9fe969c8fb7560539f67112c1b8bbdc69e30b8217a950f256a3d16cea9cb90b8ad6ca4d7b433a328f2e621660a7850a"
+          },
+          "now_ms": 1001000
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 12,
+              "issued_at_ms": 1001100,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "2f95bc3eef27bdd568e4b483fae77b48651371077ea5b404600186fe73d7628dabf78c24de5877c073a69a6226c3a003e3bb97be55f3d07737f04c3a67684603"
+          },
+          "now_ms": 1001100
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 13,
+              "issued_at_ms": 1001200,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "af8c5c8c0c29be587926bded40b3b35be77bd83e3033fb86932505522f4231eb2d7f5dd9117ef0ad1aaec1440e26f7fe9823d922fd2973bb62451bb6fa882b07"
+          },
+          "now_ms": 1001200
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 14,
+              "issued_at_ms": 1001300,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "203957db7af38504a298f822a8cdb73d9fc1ce239d340f5e6c3016b8d5fb0840a7a7f6c8926647d19c77e03e155d52132bd67a49b5b896e748d05dff9d8f0904"
+          },
+          "now_ms": 1001300
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 15,
+              "issued_at_ms": 1001400,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "0b96c3194062c0a5e331a9b311036c8cfb5289ae4dea224230fc49d8d177e252a04ca38a8ba37e84a06c6bcf17d09e9e5c6cdf2f26cc1c4e98555c22f7728904"
+          },
+          "now_ms": 1001400
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 16,
+              "issued_at_ms": 1001500,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "07751e7aac19c2337c5fce4f181edc1311eaf149797e74e4c44877c1eaedf360f0d4c724f5fa330682ba91ebcee12a07b27933f607f5e001cd8bf7435339fc0f"
+          },
+          "now_ms": 1001500
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 17,
+              "issued_at_ms": 1001600,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "347fce47b6b34fc582dcbc3de5efffa57327c14605a8f2474fd5b9af10595fb7593247884df653541d402ec11aed244a5acdf8ff0eaabdd21f68eb47a508da0d"
+          },
+          "now_ms": 1001600
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 18,
+              "issued_at_ms": 1001700,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "48268b86faf48e5b884ed02110fefee1ba8470e9b23d42f473c391b4f2cf5747830846f992512c7c6deeb5499cd93d4e3145ebd281084d2819bda355e5421406"
+          },
+          "now_ms": 1001700
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 19,
+              "issued_at_ms": 1001800,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "842f8ffb566d6ceebbe634e0f73e99e66306b4f63b5cdf00a04efa85e9ddfe7c679626195aba11e6fc364df6739daa5f163df890dc5c6c8c2b5f18924ec20e04"
+          },
+          "now_ms": 1001800
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 20,
+              "issued_at_ms": 1001900,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "0ab051183791285e3e50b2832a9afb00b58a61dce6e92cf1f8925268526b45ad4b678a37aba3f51e99ca592d7854dc5548f1bf025078a23b407a70ac60e9a104"
+          },
+          "now_ms": 1001900
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 21,
+              "issued_at_ms": 1002000,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "89d78adc0004dbb1298359fa438b20352cedde7cd45b7348ebe4fa19d328e5c38c8008b10b5e29d23f41c8a53050754f7dd310b467c59d4c50e727e08ae8a50c"
+          },
+          "now_ms": 1002000
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 22,
+              "issued_at_ms": 1002100,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "8fdbb084710dbebc3c9eaa470a6ed54948ef1f3d932242fd5c783711189edceb00c1eddf089251b66b3a511745adcb82ac34051cd168250dea27024e3db79907"
+          },
+          "now_ms": 1002100
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 23,
+              "issued_at_ms": 1002200,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "61f96d192d82312db7d1d5a0d2f33526f11fab4e78648a0509a2486003152b834c8b1e4299200ae3cc94a9da5b551882b1646a887756ed85c1b46d8d31493b00"
+          },
+          "now_ms": 1002200
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 24,
+              "issued_at_ms": 1002300,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "9195c50bac83d0b2c0517942f37c3a98a7da75a829a5293c99386bbde2e9725488b7b39853a00db9f89546328d57eb4659631d37e36532671179d39505896d07"
+          },
+          "now_ms": 1002300
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 25,
+              "issued_at_ms": 1002400,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "a4252dca1803912745e927cd4cd967005fef9004a388b013b2b0de8b19ab8db4a87c68c82220d66f9e59b8fc181cba37ebffb33d83a6a8d0ab435b6f1edb9e0d"
+          },
+          "now_ms": 1002400
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 26,
+              "issued_at_ms": 1002500,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "d2569fade9f206c32eee206601c60311cb8f881f50592b7992bd18859333a9c0c51b9f9b41f7125e9579f2bbdeda1bb07875818b3363d35b6c0f215e38fff90a"
+          },
+          "now_ms": 1002500
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 27,
+              "issued_at_ms": 1002600,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "4335ee23f43451096796d8b72d9e1484856f8fb135f200fcd944994e63c3287444dabd2527512668eaf43c853877d11f0105279cab37a6de636a6fcf2ce28206"
+          },
+          "now_ms": 1002600
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 28,
+              "issued_at_ms": 1002700,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "fee4a212634d5a85afc15ab26a5c3400796e06847280eb9aef79adce3839b1e6a0e3d75be2f9066f15ccb2a1bb755e6865884877f9ccc50337e61c863e6f2d06"
+          },
+          "now_ms": 1002700
+        }
+      ],
+      "expected_reasons": [
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized",
+        "authorized"
+      ],
+      "revoke_before": null
+    },
+    "tamper": {
+      "steps": [
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 1,
+              "issued_at_ms": 1000000,
+              "linear_mps": 0.45,
+              "angular_rps": 0.0
+            },
+            "request_signature": "2c9dbcee3a21e2bbf73bf830de2e1199ce1003e09c1129e39b1d30d30c77e8b00e050803531527e151b3f34d03c89d8cf75f705bb239f53f8b0b10793d9f7901"
+          },
+          "now_ms": 1000000
+        }
+      ],
+      "expected_reasons": [
+        "invalid_request_signature"
+      ],
+      "revoke_before": null
+    },
+    "wrong_holder": {
+      "steps": [
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 1,
+              "issued_at_ms": 1000000,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "1bb109ec6a47b7e507511980403fc75c2a1d3b1fb2f60eea274eb3238fbfa811891fe7f2bb904dfc15621518e62d26f8e8a1ace7359e23942d1771d0fea3d507"
+          },
+          "now_ms": 1000000
+        }
+      ],
+      "expected_reasons": [
+        "invalid_request_signature"
+      ],
+      "revoke_before": null
+    },
+    "overspeed": {
+      "steps": [
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 1,
+              "issued_at_ms": 1000000,
+              "linear_mps": 2.0,
+              "angular_rps": 0.0
+            },
+            "request_signature": "72624c39a553b98679a89975924ac10fa775c97db28606668b3f23911c74424aeb1fe28ef93b2a4bfe24198c1b695d7b5e3accf244aed4d0483b0745071fa40d"
+          },
+          "now_ms": 1000000
+        }
+      ],
+      "expected_reasons": [
+        "motion_limit"
+      ],
+      "revoke_before": null
+    },
+    "replay": {
+      "steps": [
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 1,
+              "issued_at_ms": 1000000,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "2c9dbcee3a21e2bbf73bf830de2e1199ce1003e09c1129e39b1d30d30c77e8b00e050803531527e151b3f34d03c89d8cf75f705bb239f53f8b0b10793d9f7901"
+          },
+          "now_ms": 1000000
+        },
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 1,
+              "issued_at_ms": 1000000,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "2c9dbcee3a21e2bbf73bf830de2e1199ce1003e09c1129e39b1d30d30c77e8b00e050803531527e151b3f34d03c89d8cf75f705bb239f53f8b0b10793d9f7901"
+          },
+          "now_ms": 1000020
+        }
+      ],
+      "expected_reasons": [
+        "authorized",
+        "replay"
+      ],
+      "revoke_before": null
+    },
+    "telemetry": {
+      "steps": [
+        {
+          "envelope": {
+            "op": "telemetry",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-sensor",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "sensor",
+                "holder_public_key": "8ba2d7f518cae79d8ad9e6730864af18e93ee9ae71cc5d1bc9a5ab6ff200875d",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "telemetry"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "02345abf065e86ee4d884504d42e8a3edeff40be59bc50b912568c771b4a277671cfe53a75ed7a218da705c9520db54d4b7a1e8747af33d164c41c5f91aac707"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "sensor",
+              "sequence": 1,
+              "issued_at_ms": 1000000,
+              "status": "moving",
+              "battery_percent": 80,
+              "position_x_m": 12.12,
+              "position_y_m": -1.25,
+              "raw_camera": "SYNTHETIC_DEMO_FRAME",
+              "raw_audio": "SYNTHETIC_DEMO_AUDIO",
+              "operator_identity": "SYNTHETIC_DEMO_OPERATOR"
+            },
+            "request_signature": "1940c17af1fcd3418a0f0a392d75e288d8280ebeb15251be0d1b5322ba920cdcf95d775bc94e6c3a55f29958283657a56b3f9128f54865f54c8ae80187d5040e"
+          },
+          "now_ms": 1000000
+        }
+      ],
+      "expected_reasons": [
+        "authorized"
+      ],
+      "revoke_before": null
+    },
+    "expired": {
+      "steps": [
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 999999,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "5b7c24353ed93539b96b49a4b0ab003bd3b02834e4c67b04187b293d894f16d390c928b0c3ca8fdf906011672e60f35383a0a9ecb6474e13023346d9b7354e0b"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 1,
+              "issued_at_ms": 999998,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "19387f4a5907c9b290a4a0e0a6916a1163d41e5641d0062ebe8d4cf56bc6550bf17282af88df85148f81de175bc8535f25ac8696d5eb2891720fe184e1a35a03"
+          },
+          "now_ms": 1000000
+        }
+      ],
+      "expected_reasons": [
+        "grant_time"
+      ],
+      "revoke_before": null
+    },
+    "revoked": {
+      "steps": [
+        {
+          "envelope": {
+            "op": "command",
+            "grant": {
+              "claims": {
+                "schema": "robot-grant/v1",
+                "grant_id": "demo-planner",
+                "robot_id": "demo-rover",
+                "session_id": "demo-mission",
+                "principal": "planner",
+                "holder_public_key": "f6696b5d6a27f7ae16e5d04acd02f8df29544ef747cb859aed81a7c03139d09a",
+                "not_before_ms": 990000,
+                "expires_at_ms": 1060000,
+                "capabilities": [
+                  "command"
+                ],
+                "max_linear_mps": 0.5,
+                "max_angular_rps": 0.8
+              },
+              "signature": "0858e69e889fdae3c4dc821abf2e33588e749773a9fbe732be98b1d9916d4c62091b0242edb69f387d633ac15f19fc97602a566f128e4c493053c085b3b93905"
+            },
+            "request": {
+              "robot_id": "demo-rover",
+              "session_id": "demo-mission",
+              "principal": "planner",
+              "sequence": 1,
+              "issued_at_ms": 1000000,
+              "linear_mps": 0.25,
+              "angular_rps": 0.0
+            },
+            "request_signature": "2c9dbcee3a21e2bbf73bf830de2e1199ce1003e09c1129e39b1d30d30c77e8b00e050803531527e151b3f34d03c89d8cf75f705bb239f53f8b0b10793d9f7901"
+          },
+          "now_ms": 1000000
+        }
+      ],
+      "expected_reasons": [
+        "revoked"
+      ],
+      "revoke_before": "demo-planner"
+    }
+  }
+}

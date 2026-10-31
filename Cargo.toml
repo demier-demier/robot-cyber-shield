@@ -5,13 +5,27 @@ edition = "2021"
 license = "MIT"
 description = "Bounded signed robot command authorization and operational telemetry minimization"
 
+[workspace]
+members = ["crates/browser"]
+default-members = ["."]
+resolver = "2"
+
+[features]
+default = ["native"]
+native = ["dep:clap", "dep:getrandom", "dep:rusqlite"]
+
+[[bin]]
+name = "robot-cyber-shield"
+path = "src/main.rs"
+required-features = ["native"]
+
 [dependencies]
 anyhow = "1"
-clap = { version = "4", features = ["derive"] }
+clap = { version = "4", features = ["derive"], optional = true }
 ed25519-dalek = "3"
-getrandom = "0.3"
+getrandom = { version = "0.3", optional = true }
 hex = "0.4"
-rusqlite = { version = "0.41", features = ["bundled"] }
+rusqlite = { version = "0.41", features = ["bundled"], optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"

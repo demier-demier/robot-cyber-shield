@@ -8,6 +8,19 @@ Robot Cyber Shield combines a Rust authorization service with real ROS 2 / SROS2
 
 The repository includes executable integration tests. The ROS processes and cryptographic checks are real; the driver, motion and camera-like payloads are synthetic. Security decisions use deterministic verification, with no AI inference in the enforcement path.
 
+## Watch the visual demo
+
+**[Open the interactive robot security demonstration](https://bernardo-demier-ai-lab.fancy-fly-9200.chatgpt.site/robot-cyber-shield/)** — no installation or account. English and Portuguese, a guided presentation and individual attack scenarios.
+
+The browser executes the shared Rust verifier through WebAssembly. Try altered commands, wrong signing keys, replay, expired/revoked permissions, speed limits and telemetry minimization. The camera-access scene presents separately labelled evidence from real ROS 2 tests. The 3D robot illustrates the decisions; it is not physical hardware or a performance benchmark. [How the demo works and what it establishes](docs/VISUAL-DEMO.md).
+
+Run the same interface locally:
+
+```sh
+python3 -m http.server 8790 --bind 127.0.0.1 --directory web
+# Open http://127.0.0.1:8790/
+```
+
 ## What the working boundary does
 
 | Request | Enforcement |
