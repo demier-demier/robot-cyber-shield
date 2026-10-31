@@ -58,6 +58,8 @@ A later [ROS 2 run](https://github.com/demier-demier/robot-cyber-shield/actions/
 
 All negative security checks and the other five scenarios passed in that run. No unauthorized command was executed. This is nevertheless a real permitted-work reliability failure, and prevents a claim of zero valid-command loss. The revision changed only visual assets/documentation, not the native guard or ROS harness. Further work must expose the driver's rejection reason and validate the positive-control scheduling without weakening the security policy or the baseline assertion. A later passing rerun would not erase this observation.
 
+The [follow-up run](https://github.com/demier-demier/robot-cyber-shield/actions/runs/41251616149) repeated the driver-side issue: 33 published, 33 admitted, 32 accepted by the driver. Its negative security checks also passed. Diagnostic instrumentation now records the driver's exact rejection reason and remaining lease, guard processing times, actual publication gaps and sensor-signing duration. Four focused tests bring the local Python total to 15 passing tests. This instrumentation does **not** fix the observed delivery failure and does not change limits or acceptance assertions; its native integration results remain a separate follow-up.
+
 ## Reproduce and interpret
 
 ```sh
