@@ -1,0 +1,4 @@
+ros-jazzy-rclpy	7.1.12-1noble.20260912.162354
+ros-jazzy-rmw-fastrtps-cpp	8.4.4-1noble.20260911.100940
+ros-jazzy-sros2	0.13.6-1noble.20261006.034504
+ros-jazzy-std-msgs	5.3.8-1noble.20260911.094424

@@ -1,0 +1,586 @@
+{
+  "schema": "robot-shield-ros2-observed/v1",
+  "passed": true,
+  "ros_distribution": "jazzy",
+  "rmw": "rmw_fastrtps_cpp",
+  "system": "Linux",
+  "machine": "x86_64",
+  "actuator": "synthetic_kinematic_stub",
+  "hardware_motion_tested": false,
+  "packet_capture_performed": false,
+  "cases": [
+    {
+      "name": "baseline",
+      "attack": "none",
+      "checks": [
+        {
+          "name": "all_authorized_processes_completed",
+          "passed": true,
+          "detail": {
+            "driver": {
+              "completed": true,
+              "errors": []
+            },
+            "guard": {
+              "completed": true,
+              "errors": []
+            },
+            "observer": {
+              "completed": true,
+              "errors": []
+            },
+            "analytics": {
+              "completed": true,
+              "errors": []
+            },
+            "planner": {
+              "completed": true,
+              "errors": []
+            }
+          }
+        },
+        {
+          "name": "authorized_guard_received_signed_raw_sensor_data",
+          "passed": true,
+          "detail": {
+            "raw_messages": 29,
+            "fixture_marker_seen": true
+          }
+        },
+        {
+          "name": "analytics_received_only_allowlisted_minimal_telemetry",
+          "passed": true,
+          "detail": {
+            "messages": 29,
+            "field_allowlist": [
+              "battery_percent",
+              "position_cell_x",
+              "position_cell_y",
+              "position_grid_m",
+              "robot_id",
+              "status"
+            ]
+          }
+        },
+        {
+          "name": "observer_witnessed_live_driver_state",
+          "passed": true,
+          "detail": {
+            "samples": 117
+          }
+        },
+        {
+          "name": "authorized_command_caused_synthetic_motion",
+          "passed": true,
+          "detail": {
+            "accepted_commands": 19,
+            "max_x_m": 0.7250068130000002
+          }
+        },
+        {
+          "name": "driver_stopped_after_command_lease_expiry",
+          "passed": true,
+          "detail": {
+            "watchdog_stops": 1
+          }
+        },
+        {
+          "name": "every_command_published_after_discovery_reached_actuator_in_this_run",
+          "passed": true,
+          "detail": {
+            "published": 19,
+            "allowed": 19,
+            "executed": 19,
+            "discovery_wait_cycles": 14,
+            "first_publish_elapsed_ms": 4201
+          }
+        },
+        {
+          "name": "forbidden_publish_denied_at_native_dds_endpoint",
+          "passed": true,
+          "detail": {
+            "initialized": true,
+            "endpoint_created": false,
+            "failure_stage": "endpoint",
+            "errors": [
+              "RCLError"
+            ]
+          }
+        },
+        {
+          "name": "forbidden_read_denied_at_native_dds_endpoint",
+          "passed": true,
+          "detail": {
+            "initialized": true,
+            "endpoint_created": false,
+            "failure_stage": "endpoint",
+            "errors": [
+              "RCLError"
+            ]
+          }
+        },
+        {
+          "name": "enforce_refused_missing_enclave_credentials",
+          "passed": true,
+          "detail": {
+            "initialized": false,
+            "failure_stage": "init",
+            "errors": [
+              "RCLError"
+            ]
+          }
+        },
+        {
+          "name": "unsecured_listener_received_no_secured_raw_data",
+          "passed": true,
+          "detail": {
+            "unsecured_messages": 0,
+            "authorized_raw_messages": 29
+          }
+        },
+        {
+          "name": "outsider_command_never_executed",
+          "passed": true,
+          "detail": {
+            "last_sequence": 19
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "replay",
+      "attack": "replay",
+      "checks": [
+        {
+          "name": "all_authorized_processes_completed",
+          "passed": true,
+          "detail": {
+            "driver": {
+              "completed": true,
+              "errors": []
+            },
+            "guard": {
+              "completed": true,
+              "errors": []
+            },
+            "observer": {
+              "completed": true,
+              "errors": []
+            },
+            "analytics": {
+              "completed": true,
+              "errors": []
+            },
+            "planner": {
+              "completed": true,
+              "errors": []
+            }
+          }
+        },
+        {
+          "name": "authorized_guard_received_signed_raw_sensor_data",
+          "passed": true,
+          "detail": {
+            "raw_messages": 30,
+            "fixture_marker_seen": true
+          }
+        },
+        {
+          "name": "analytics_received_only_allowlisted_minimal_telemetry",
+          "passed": true,
+          "detail": {
+            "messages": 30,
+            "field_allowlist": [
+              "battery_percent",
+              "position_cell_x",
+              "position_cell_y",
+              "position_grid_m",
+              "robot_id",
+              "status"
+            ]
+          }
+        },
+        {
+          "name": "observer_witnessed_live_driver_state",
+          "passed": true,
+          "detail": {
+            "samples": 118
+          }
+        },
+        {
+          "name": "authorized_command_caused_synthetic_motion",
+          "passed": true,
+          "detail": {
+            "accepted_commands": 1,
+            "max_x_m": 0.050003453500004014
+          }
+        },
+        {
+          "name": "driver_stopped_after_command_lease_expiry",
+          "passed": true,
+          "detail": {
+            "watchdog_stops": 1
+          }
+        },
+        {
+          "name": "replayed_envelope_never_extends_command_lease",
+          "passed": true,
+          "detail": {
+            "allowed": 1,
+            "denied": 32,
+            "accepted_by_driver": 1
+          }
+        },
+        {
+          "name": "replay_denied_by_replay_or_age_after_first_authorization",
+          "passed": true,
+          "detail": {
+            "observed_reasons": {
+              "authorized": 31,
+              "replay": 13,
+              "request_time_or_sequence": 19
+            }
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "wrong_holder",
+      "attack": "wrong_holder",
+      "checks": [
+        {
+          "name": "all_authorized_processes_completed",
+          "passed": true,
+          "detail": {
+            "driver": {
+              "completed": true,
+              "errors": []
+            },
+            "guard": {
+              "completed": true,
+              "errors": []
+            },
+            "observer": {
+              "completed": true,
+              "errors": []
+            },
+            "analytics": {
+              "completed": true,
+              "errors": []
+            },
+            "planner": {
+              "completed": true,
+              "errors": []
+            }
+          }
+        },
+        {
+          "name": "authorized_guard_received_signed_raw_sensor_data",
+          "passed": true,
+          "detail": {
+            "raw_messages": 29,
+            "fixture_marker_seen": true
+          }
+        },
+        {
+          "name": "analytics_received_only_allowlisted_minimal_telemetry",
+          "passed": true,
+          "detail": {
+            "messages": 29,
+            "field_allowlist": [
+              "battery_percent",
+              "position_cell_x",
+              "position_cell_y",
+              "position_grid_m",
+              "robot_id",
+              "status"
+            ]
+          }
+        },
+        {
+          "name": "observer_witnessed_live_driver_state",
+          "passed": true,
+          "detail": {
+            "samples": 116
+          }
+        },
+        {
+          "name": "wrong_holder_requests_did_not_reach_actuator",
+          "passed": true,
+          "detail": {
+            "allowed": 0,
+            "denied": 31,
+            "accepted_by_driver": 0,
+            "x_m": 0.0
+          }
+        },
+        {
+          "name": "wrong_holder_denied_for_expected_reason",
+          "passed": true,
+          "detail": {
+            "expected_reason": "invalid_request_signature",
+            "observed_reasons": {
+              "authorized": 29,
+              "invalid_request_signature": 31
+            }
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "stale",
+      "attack": "stale",
+      "checks": [
+        {
+          "name": "all_authorized_processes_completed",
+          "passed": true,
+          "detail": {
+            "driver": {
+              "completed": true,
+              "errors": []
+            },
+            "guard": {
+              "completed": true,
+              "errors": []
+            },
+            "observer": {
+              "completed": true,
+              "errors": []
+            },
+            "analytics": {
+              "completed": true,
+              "errors": []
+            },
+            "planner": {
+              "completed": true,
+              "errors": []
+            }
+          }
+        },
+        {
+          "name": "authorized_guard_received_signed_raw_sensor_data",
+          "passed": true,
+          "detail": {
+            "raw_messages": 30,
+            "fixture_marker_seen": true
+          }
+        },
+        {
+          "name": "analytics_received_only_allowlisted_minimal_telemetry",
+          "passed": true,
+          "detail": {
+            "messages": 30,
+            "field_allowlist": [
+              "battery_percent",
+              "position_cell_x",
+              "position_cell_y",
+              "position_grid_m",
+              "robot_id",
+              "status"
+            ]
+          }
+        },
+        {
+          "name": "observer_witnessed_live_driver_state",
+          "passed": true,
+          "detail": {
+            "samples": 117
+          }
+        },
+        {
+          "name": "stale_requests_did_not_reach_actuator",
+          "passed": true,
+          "detail": {
+            "allowed": 0,
+            "denied": 33,
+            "accepted_by_driver": 0,
+            "x_m": 0.0
+          }
+        },
+        {
+          "name": "stale_denied_for_expected_reason",
+          "passed": true,
+          "detail": {
+            "expected_reason": "request_time_or_sequence",
+            "observed_reasons": {
+              "authorized": 30,
+              "request_time_or_sequence": 33
+            }
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "overspeed",
+      "attack": "overspeed",
+      "checks": [
+        {
+          "name": "all_authorized_processes_completed",
+          "passed": true,
+          "detail": {
+            "driver": {
+              "completed": true,
+              "errors": []
+            },
+            "guard": {
+              "completed": true,
+              "errors": []
+            },
+            "observer": {
+              "completed": true,
+              "errors": []
+            },
+            "analytics": {
+              "completed": true,
+              "errors": []
+            },
+            "planner": {
+              "completed": true,
+              "errors": []
+            }
+          }
+        },
+        {
+          "name": "authorized_guard_received_signed_raw_sensor_data",
+          "passed": true,
+          "detail": {
+            "raw_messages": 30,
+            "fixture_marker_seen": true
+          }
+        },
+        {
+          "name": "analytics_received_only_allowlisted_minimal_telemetry",
+          "passed": true,
+          "detail": {
+            "messages": 30,
+            "field_allowlist": [
+              "battery_percent",
+              "position_cell_x",
+              "position_cell_y",
+              "position_grid_m",
+              "robot_id",
+              "status"
+            ]
+          }
+        },
+        {
+          "name": "observer_witnessed_live_driver_state",
+          "passed": true,
+          "detail": {
+            "samples": 116
+          }
+        },
+        {
+          "name": "overspeed_requests_did_not_reach_actuator",
+          "passed": true,
+          "detail": {
+            "allowed": 0,
+            "denied": 33,
+            "accepted_by_driver": 0,
+            "x_m": 0.0
+          }
+        },
+        {
+          "name": "overspeed_denied_for_expected_reason",
+          "passed": true,
+          "detail": {
+            "expected_reason": "motion_limit",
+            "observed_reasons": {
+              "authorized": 30,
+              "motion_limit": 33
+            }
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "tamper",
+      "attack": "tamper",
+      "checks": [
+        {
+          "name": "all_authorized_processes_completed",
+          "passed": true,
+          "detail": {
+            "driver": {
+              "completed": true,
+              "errors": []
+            },
+            "guard": {
+              "completed": true,
+              "errors": []
+            },
+            "observer": {
+              "completed": true,
+              "errors": []
+            },
+            "analytics": {
+              "completed": true,
+              "errors": []
+            },
+            "planner": {
+              "completed": true,
+              "errors": []
+            }
+          }
+        },
+        {
+          "name": "authorized_guard_received_signed_raw_sensor_data",
+          "passed": true,
+          "detail": {
+            "raw_messages": 30,
+            "fixture_marker_seen": true
+          }
+        },
+        {
+          "name": "analytics_received_only_allowlisted_minimal_telemetry",
+          "passed": true,
+          "detail": {
+            "messages": 29,
+            "field_allowlist": [
+              "battery_percent",
+              "position_cell_x",
+              "position_cell_y",
+              "position_grid_m",
+              "robot_id",
+              "status"
+            ]
+          }
+        },
+        {
+          "name": "observer_witnessed_live_driver_state",
+          "passed": true,
+          "detail": {
+            "samples": 116
+          }
+        },
+        {
+          "name": "tamper_requests_did_not_reach_actuator",
+          "passed": true,
+          "detail": {
+            "allowed": 0,
+            "denied": 32,
+            "accepted_by_driver": 0,
+            "x_m": 0.0
+          }
+        },
+        {
+          "name": "tamper_denied_for_expected_reason",
+          "passed": true,
+          "detail": {
+            "expected_reason": "invalid_request_signature",
+            "observed_reasons": {
+              "authorized": 30,
+              "invalid_request_signature": 32
+            }
+          }
+        }
+      ],
+      "passed": true
+    }
+  ]
+}

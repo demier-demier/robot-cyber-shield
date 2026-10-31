@@ -23,6 +23,10 @@ The repository includes executable integration tests. The ROS processes and cryp
 
 Location coarsening is **data minimization, not anonymization**. A software lease is **not a certified emergency stop**. A compromised authorized host can defeat controls at its own trust boundary.
 
+## Validated results
+
+The [observed validation record](docs/RESULTS.md) includes 24 Rust tests on the Mac, 11 executable workflow checks on Linux/macOS/Windows, four POSIX IPC tests, and a real ROS 2 run with **44/44 checks passed**. In that run, all 19 authorized baseline commands reached the driver after discovery; all four signed attack scenarios produced zero actuator commands. The record also preserves the initial discovery/delivery limitation and its correction.
+
 ## Try the native workflow
 
 Requires a current stable Rust toolchain and Python 3.9+; no ROS installation, cloud account, GPU, model API or purchased service is needed.

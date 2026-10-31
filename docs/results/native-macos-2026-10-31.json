@@ -1,0 +1,65 @@
+{
+  "schema": "robot-shield-native-evidence/v1",
+  "result": "passed",
+  "platform": "Darwin",
+  "architecture": "arm64",
+  "scope": "Native command authorization and data minimization; no ROS or hardware",
+  "scenarios": 11,
+  "observations": [
+    {
+      "name": "signed_command_accepted",
+      "passed": true,
+      "observed_reason": "authorized"
+    },
+    {
+      "name": "same_command_rejected_after_process_restart",
+      "passed": true,
+      "observed_reason": "replay"
+    },
+    {
+      "name": "changed_command_signature_rejected",
+      "passed": true,
+      "observed_reason": "invalid_request_signature"
+    },
+    {
+      "name": "signed_excess_speed_rejected",
+      "passed": true,
+      "observed_reason": "motion_limit"
+    },
+    {
+      "name": "signed_wrong_robot_rejected",
+      "passed": true,
+      "observed_reason": "identity_scope"
+    },
+    {
+      "name": "expired_signed_grant_rejected",
+      "passed": true,
+      "observed_reason": "grant_time"
+    },
+    {
+      "name": "stale_signed_command_rejected",
+      "passed": true,
+      "observed_reason": "request_time_or_sequence"
+    },
+    {
+      "name": "signed_telemetry_minimized",
+      "passed": true,
+      "observed_reason": "authorized"
+    },
+    {
+      "name": "revoked_grant_rejected_after_restart",
+      "passed": true,
+      "observed_reason": "revoked"
+    },
+    {
+      "name": "unknown_envelope_fields_rejected",
+      "passed": true,
+      "observed_reason": "invalid_schema"
+    },
+    {
+      "name": "persistent_sanitized_decision_audit",
+      "passed": true,
+      "observed_events": 10
+    }
+  ]
+}
