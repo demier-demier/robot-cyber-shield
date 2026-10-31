@@ -1,0 +1,15 @@
+/target/
+/.venv/
+__pycache__/
+*.pyc
+/artifacts/
+/runtime/
+*.sqlite*
+*.db*
+*.pem
+*.p12
+*.pfx
+*.key
+*.private
+.DS_Store
+

@@ -1,0 +1,42 @@
+name: ROS2 native security integration
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secured-robot-lab:
+    runs-on: ubuntu-latest
+    container: ros:jazzy-ros-base
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install official ROS2 security packages
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ros-jazzy-sros2 ros-jazzy-rmw-fastrtps-cpp ros-jazzy-std-msgs build-essential pkg-config curl ca-certificates
+          mkdir -p artifacts
+          dpkg-query -W ros-jazzy-sros2 ros-jazzy-rmw-fastrtps-cpp ros-jazzy-rclpy ros-jazzy-std-msgs > artifacts/ros2-packages.txt
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build actual Rust enforcement process
+        shell: bash
+        run: cargo build --locked --release
+      - name: Exercise secured DDS and signed Rust command path
+        shell: bash
+        run: bash scripts/run_ros2_lab.sh
+      - name: Preserve bounded observations, never identities or keys
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ros2-native-observations
+          path: |
+            artifacts/ros2/**/*.json
+            artifacts/ros2/**/*.log
+            artifacts/ros2-packages.txt
+          if-no-files-found: error
+          retention-days: 14

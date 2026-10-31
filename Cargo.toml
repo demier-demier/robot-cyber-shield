@@ -1,0 +1,24 @@
+[package]
+name = "robot-cyber-shield"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Bounded signed robot command authorization and operational telemetry minimization"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+ed25519-dalek = "3"
+getrandom = "0.3"
+hex = "0.4"
+rusqlite = { version = "0.41", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
