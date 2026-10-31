@@ -24,6 +24,7 @@ jobs:
       - run: cargo fmt --check
       - run: cargo clippy --locked --all-targets -- -D warnings
       - run: cargo test --locked
+      - run: python -m unittest discover -s tests -p "test_*.py" -v
       - run: cargo build --locked
       - run: python scripts/check_local_workflow.py --output artifacts/native-workflow.json
       - uses: actions/upload-artifact@v4
@@ -32,4 +33,3 @@ jobs:
           name: native-evidence-${{ matrix.os }}
           path: artifacts/native-workflow.json
           if-no-files-found: warn
-

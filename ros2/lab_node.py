@@ -207,12 +207,22 @@ def main():
             publisher = node.create_publisher(String, "/shield/requests", 10)
             sequence = 0
             replay_envelope = None
+            report["discovery_wait_cycles"] = 0
+            report["first_publish_elapsed_ms"] = None
+            report["matched_subscriptions_at_first_publish"] = 0
 
             def plan():
                 nonlocal sequence, replay_envelope
                 # Give DDS discovery time before publishing signed fixtures.
                 if time.monotonic() - started < 2.0:
                     return
+                matched = publisher.get_subscription_count()
+                if matched == 0:
+                    report["discovery_wait_cycles"] += 1
+                    return
+                if report["first_publish_elapsed_ms"] is None:
+                    report["first_publish_elapsed_ms"] = round((time.monotonic() - started) * 1000)
+                    report["matched_subscriptions_at_first_publish"] = matched
                 sequence += 1
                 request = {"robot_id": "r1", "session_id": "mission1", "principal": "planner",
                            "sequence": sequence, "issued_at_ms": now_ms() - (10000 if args.attack == "stale" else 0),

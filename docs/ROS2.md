@@ -74,11 +74,13 @@ SHIELD_ROS2_OUTPUT=/tmp/shield-baseline bash scripts/run_ros2_lab.sh --cases bas
 
 No ROS daemon or physical robot is required. No network beyond the local DDS participants is targeted. The runner does not install packages or enable paid infrastructure itself.
 
+The planner waits for a matched subscriber before publishing and records how many discovery cycles it waited. The baseline compares the number published, authorized and accepted by the actuator. Equality is an observation for that run, not a general delivery or availability guarantee: this example has no application-level command acknowledgment/retry protocol.
+
 ## Acceptance criteria
 
 | Scenario | Required native observation |
 | --- | --- |
-| Authorized mission | Signed commands reach Rust, actuator accepts them, observed position changes, then velocity returns to zero after the planner stops and the lease expires. |
+| Authorized mission | After DDS discovery, every command published in this run reaches Rust and the actuator; observed position changes, then velocity returns to zero after the planner stops and the lease expires. |
 | Replay | First signed envelope is allowed exactly once; repeated deliveries are denied and cannot keep the robot moving. |
 | Wrong holder | A transplanted signature reaches Rust through the authorized planner topic and is denied; driver accepts zero commands and position remains unchanged. |
 | Stale request | Correctly signed old timestamp is denied; zero actuator effects. This tests request age, not grant expiry. |
@@ -90,6 +92,8 @@ No ROS daemon or physical robot is required. No network beyond the local DDS par
 | Unsecured subscriber | Native unsecured subscriber starts but receives zero raw samples while the authorized guard receives raw samples. |
 
 Results include both successful controls and failed/denied cases. A negative test cannot pass merely because all processes failed or no sensor data existed. `summary.json` is true only when every selected scenario's acceptance checks pass.
+
+Signed negative cases must also produce the expected Rust reason (`invalid_request_signature`, `request_time_or_sequence`, `motion_limit`, or `replay`). A replay becomes stale as it ages; both reasons are retained rather than relabeled as a single kind of rejection.
 
 Evidence contains bounded JSON observations, sanitized process logs, policy metadata and package versions. It excludes keystores, private keys, signed grants/envelopes, raw frame payloads and SQLite state. Ephemeral credentials are removed at the end of the run.
 

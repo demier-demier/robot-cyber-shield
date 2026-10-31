@@ -178,18 +178,39 @@ def run_case(name, binary, workspace, output, env, attack="none", dds=False):
                 and all(x.get("linear_mps") == 0 and x.get("angular_rps") == 0 for x in state[-5:]),
                 "driver_stopped_after_command_lease_expiry", checks,
                 {"watchdog_stops": driver.get("watchdog_stops", 0)})
+        if attack == "none":
+            published = reports["planner"].get("messages", 0)
+            require(published > 0 and published == guard.get("allowed_commands")
+                    and published == driver.get("accepted_commands")
+                    and reports["planner"].get("matched_subscriptions_at_first_publish", 0) > 0,
+                    "every_command_published_after_discovery_reached_actuator_in_this_run", checks,
+                    {"published": published, "allowed": guard.get("allowed_commands"),
+                     "executed": driver.get("accepted_commands"),
+                     "discovery_wait_cycles": reports["planner"].get("discovery_wait_cycles"),
+                     "first_publish_elapsed_ms": reports["planner"].get("first_publish_elapsed_ms")})
     else:
         require(guard.get("allowed_commands") == 0 and guard.get("denied_commands", 0) >= 5
                 and driver.get("accepted_commands") == 0 and driver.get("max_x_m") == 0,
                 f"{attack}_requests_did_not_reach_actuator", checks,
                 {"allowed": guard.get("allowed_commands"), "denied": guard.get("denied_commands"),
                  "accepted_by_driver": driver.get("accepted_commands"), "x_m": driver.get("max_x_m")})
+        reason = {"wrong_holder": "invalid_request_signature", "stale": "request_time_or_sequence",
+                  "overspeed": "motion_limit", "tamper": "invalid_request_signature"}[attack]
+        require(guard.get("decision_reasons", {}).get(reason, 0) == guard.get("denied_commands")
+                and guard.get("denied_commands", 0) >= 5,
+                f"{attack}_denied_for_expected_reason", checks,
+                {"expected_reason": reason, "observed_reasons": guard.get("decision_reasons", {})})
     if attack == "replay":
         require(guard.get("allowed_commands") == 1 and guard.get("denied_commands", 0) >= 5
                 and driver.get("accepted_commands") == 1,
                 "replayed_envelope_never_extends_command_lease", checks,
                 {"allowed": guard.get("allowed_commands"), "denied": guard.get("denied_commands"),
                  "accepted_by_driver": driver.get("accepted_commands")})
+        reasons = guard.get("decision_reasons", {})
+        require(reasons.get("replay", 0) > 0
+                and set(reasons) <= {"authorized", "replay", "request_time_or_sequence"},
+                "replay_denied_by_replay_or_age_after_first_authorization", checks,
+                {"observed_reasons": reasons})
     if dds:
         for item in ("forbidden_publish", "forbidden_read"):
             denied = reports[item]
