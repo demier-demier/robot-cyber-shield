@@ -324,7 +324,8 @@ export async function createScene(container) {
     annotations.forEach(({ point, el }, index) => {
       const projected = point.clone().project(camera);
       el.style.left = `${Math.max(50, Math.min(width - 50, (projected.x * 0.5 + 0.5) * width))}px`;
-      el.style.top = `${Math.max(54, Math.min(height - 106, (-projected.y * 0.5 + 0.5) * height))}px`;
+      const titleClearance = width < 800 && index === 1 ? 118 : 54;
+      el.style.top = `${Math.max(titleClearance, Math.min(height - 106, (-projected.y * 0.5 + 0.5) * height))}px`;
       el.style.display = mode.kind === 'idle' ? 'none' : 'block';
       el.textContent = index ? (portuguese ? 'PROTEÇÃO' : 'GUARD') : (portuguese ? 'PEDIDO' : 'REQUEST');
     });
