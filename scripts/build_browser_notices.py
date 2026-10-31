@@ -21,7 +21,7 @@ def main():
         match = re.match(r"^([A-Za-z0-9_-]+) v([^ ]+)", line)
         if match:
             required.add(match.groups())
-    metadata = json.loads(output("cargo", "metadata", "--locked", "--offline", "--no-default-features", "--filter-platform", "wasm32-unknown-unknown", "--format-version", "1"))
+    metadata = json.loads(output("cargo", "metadata", "--locked", "--no-default-features", "--filter-platform", "wasm32-unknown-unknown", "--format-version", "1"))
     sections = ["ROBOT CYBER SHIELD BROWSER VERIFIER — THIRD-PARTY NOTICES\n\n"
                 "Resolved dependency versions are pinned in Cargo.lock. The notices below\n"
                 "cover dependencies of the browser verifier, including build-time macros.\n"
