@@ -23,7 +23,7 @@ The native DDS logs explicitly reported denied creation of a writer on `rt/robot
 
 The first replay case admitted one command, then denied 32 further deliveries: 13 due to replay and 19 because the same request had become stale. Both reasons are retained instead of attributing every rejection to replay.
 
-## Current validated revision
+## Recorded ROS 2 baseline used by the visual demo
 
 Code revision: `76024ea1044288f67a45c400c26e64b8e11152be`.
 
@@ -43,6 +43,20 @@ Code revision: `76024ea1044288f67a45c400c26e64b8e11152be`.
 The baseline waited 14 discovery cycles before its first publication. All 19 commands then reached both guard and driver in this run. The synthetic position advanced approximately 0.725 m and commanded velocity returned to zero after lease expiry. This measures software fixture behavior, not physical stopping distance.
 
 Both authenticated forbidden endpoints were rejected by DDS. The unsecured raw-data listener received zero messages, while the authorized raw reader and the permitted minimal-data observer received samples. Every exported sample matched the six-field allowlist. Four signed attack scenarios produced zero admitted commands and zero synthetic displacement; their exact rejection reasons are recorded in the report.
+
+## Browser verifier and visual demonstration
+
+The browser and native service now share the Rust signature-verification and admission-policy functions. Local validation passed 26 Rust tests, including native/memory parity, and 11 Python tests on POSIX. The emitted WASM passed eight scenarios, 36 decisions and five invalid-clock checks. Six app lifecycle checks exercise failure cleanup and reduced-motion playback using explicitly stubbed DOM/scene peers; those are separate from real WASM verification.
+
+Actual browser interaction exercised all nine selectable scenes, the evidence view, English/Portuguese switching and compact layouts. The published five-scene guide completed. A downloaded tamper decision contained `invalid_request_signature`, no forwarded command and zero illustrative movement. The focused visual revision was tested by [browser CI](https://github.com/demier-demier/robot-cyber-shield/actions/runs/41251616126) and [native CI](https://github.com/demier-demier/robot-cyber-shield/actions/runs/41251616114) at `7718b6300e475ecdbb103b38f045661cbacb9382`.
+
+WASM's permitted sequence has 28 admitted commands and an illustrative lease-bounded displacement of 0.7375 m. A repeated request permits only the first lease (0.0625 m); the other command attacks produce zero displacement. These are kinematic integrations of verified commands, not physical measurements. Camera access explicitly uses the recorded native run above, not live DDS in a browser. See [the visual demo's evidence boundary](VISUAL-DEMO.md).
+
+### Observed native reliability failure
+
+A later [ROS 2 run](https://github.com/demier-demier/robot-cyber-shield/actions/runs/41251407457) failed its authorized-delivery baseline: 32 commands were published, 31 admitted by the guard and 30 accepted by the software driver. All 32 reached the guard; one was rejected by its rate limit. The driver rejected one additional command, but that run did not retain its rejection reason. Lease expiry or ordering is not established as the cause.
+
+All negative security checks and the other five scenarios passed in that run. No unauthorized command was executed. This is nevertheless a real permitted-work reliability failure, and prevents a claim of zero valid-command loss. The revision changed only visual assets/documentation, not the native guard or ROS harness. Further work must expose the driver's rejection reason and validate the positive-control scheduling without weakening the security policy or the baseline assertion. A later passing rerun would not erase this observation.
 
 ## Reproduce and interpret
 
