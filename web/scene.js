@@ -1,360 +1,368 @@
 import * as THREE from './vendor/three.module.min.js';
 
-// An original visual test cell. This renderer never decides authorization:
-// the caller supplies the verifier result and controls the presentation clock.
-// Distances illustrate the observed synthetic actuator cases, not real hardware.
+// Original product-shot geometry and visualization only. Security decisions,
+// permitted movement and illustrative distances are supplied by the caller.
 export async function createScene(container) {
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const resources = new Set();
-  const keep = value => { resources.add(value); return value; };
+  const keep = x => (resources.add(x), x);
+  const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reducedMotion = motionQuery.matches;
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'low-power' });
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
   } catch {
     const fallback = document.createElement('div');
     fallback.className = 'scene-fallback';
-    fallback.textContent = 'The 3D view needs WebGL. The security decisions and evidence below still work.';
+    fallback.textContent = 'The 3D view needs WebGL. Security verification and evidence remain available.';
     container.append(fallback);
-    return { available: false, setMode() {}, setProgress() {}, reset() {}, resize() {}, setPaused() {}, dispose() { fallback.remove(); } };
+    return { available: false, setMode() {}, setProgress() {}, setPaused() {}, reset() {}, resize() {}, dispose() { fallback.remove(); } };
   }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.65));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.14;
-  renderer.domElement.setAttribute('aria-label', 'Illustrated robot security test cell. A mobile robot receives a permitted command or a blocked request.');
-  renderer.domElement.setAttribute('role', 'img');
-  renderer.domElement.style.cssText = 'width:100%;height:100%;display:block;outline:none;';
-  container.append(renderer.domElement);
+  renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  const canvas = renderer.domElement;
+  canvas.style.cssText = 'width:100%;height:100%;display:block;';
+  canvas.setAttribute('role', 'img');
+  canvas.setAttribute('aria-label', 'Industrial mobile robot and a diagrammatic authorization boundary. Requests travel toward the boundary; unauthorized requests stop before reaching the robot.');
+  container.append(canvas);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color('#182b37');
-  scene.fog = new THREE.Fog('#182b37', 10, 23);
-  const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 50);
-  const lookAt = new THREE.Vector3(-0.18, 0.42, 0.0);
-  camera.position.set(5.2, 4.15, 5.9);
-  camera.lookAt(lookAt);
+  scene.background = new THREE.Color('#0d1217');
+  scene.fog = new THREE.Fog('#0d1217', 8, 22);
+  const camera = new THREE.PerspectiveCamera(28, 1, 0.08, 40);
+  const look = new THREE.Vector3(-0.1, 0.28, 0);
+  camera.position.set(4.15, 2.55, 6.1);
+  camera.lookAt(look);
 
-  const mat = (color, opts = {}) => keep(new THREE.MeshStandardMaterial({ color, roughness: 0.62, metalness: 0.08, ...opts }));
-  const C = {
-    floor: mat('#3a515d', { roughness: 0.9 }),
-    seam: mat('#2b414b', { roughness: 1 }),
-    chalk: mat('#b3c2c5', { roughness: 1 }),
-    graphite: mat('#182f3b', { roughness: 0.48, metalness: 0.36 }),
-    steel: mat('#617783', { roughness: 0.3, metalness: 0.75 }),
-    aluminum: mat('#bac7ce', { roughness: 0.28, metalness: 0.62 }),
-    white: mat('#eff1e9', { roughness: 0.36, metalness: 0.15 }),
-    black: mat('#15232a', { roughness: 0.93 }),
-    amber: mat('#f3b736', { roughness: 0.33, metalness: 0.12 }),
-    darkAmber: mat('#ba791f'),
-    lens: mat('#1d4853', { roughness: 0.13, metalness: 0.72 }),
-    red: mat('#c84f48', { emissive: '#ac2928', emissiveIntensity: 0.22 }),
-    green: mat('#218d78', { emissive: '#197966', emissiveIntensity: 0.18 }),
-    plastic: mat('#a8b1aa', { roughness: 0.85 }),
-  };
-
-  const box = (parent, size, position, material, options = {}) => {
-    const mesh = new THREE.Mesh(keep(new THREE.BoxGeometry(...size)), material);
-    mesh.position.set(...position);
-    mesh.castShadow = options.shadow !== false;
-    mesh.receiveShadow = true;
-    parent.add(mesh);
-    return mesh;
-  };
-  const cylinder = (parent, radius, height, position, material, segments = 32) => {
-    const mesh = new THREE.Mesh(keep(new THREE.CylinderGeometry(radius, radius, height, segments)), material);
-    mesh.position.set(...position);
-    mesh.castShadow = true; mesh.receiveShadow = true;
-    parent.add(mesh);
-    return mesh;
-  };
-  function roundedPlate(parent, width, length, height, radius, position, material) {
-    const shape = new THREE.Shape();
-    const x = -width / 2, y = -length / 2;
-    shape.moveTo(x + radius, y);
-    shape.lineTo(x + width - radius, y);
-    shape.quadraticCurveTo(x + width, y, x + width, y + radius);
-    shape.lineTo(x + width, y + length - radius);
-    shape.quadraticCurveTo(x + width, y + length, x + width - radius, y + length);
-    shape.lineTo(x + radius, y + length);
-    shape.quadraticCurveTo(x, y + length, x, y + length - radius);
-    shape.lineTo(x, y + radius);
-    shape.quadraticCurveTo(x, y, x + radius, y);
-    const geometry = keep(new THREE.ExtrudeGeometry(shape, { depth: height, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.012, bevelThickness: 0.012, curveSegments: 5 }));
+  // A procedurally built photographic light tent provides meaningful PBR
+  // reflections without a downloaded HDR image or an external asset license.
+  const envScene = new THREE.Scene();
+  envScene.background = new THREE.Color('#111820');
+  const envResources = [];
+  const envPanel = (size, position, intensity, color, rotation = [0, 0, 0]) => {
+    const geometry = new THREE.PlaneGeometry(...size);
+    const material = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide });
+    material.color.multiplyScalar(intensity);
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.rotation.x = -Math.PI / 2;
-    mesh.position.set(...position);
-    mesh.castShadow = true; mesh.receiveShadow = true;
-    parent.add(mesh);
+    mesh.position.set(...position); mesh.rotation.set(...rotation);
+    envScene.add(mesh); envResources.push(geometry, material);
+  };
+  envPanel([5, 3], [-3, 4, 3], 5, '#f7eddb', [0.35, -0.6, 0]);
+  envPanel([0.8, 5], [4, 2, -2], 7, '#cae5f1', [0, Math.PI / 2, 0]);
+  envPanel([5, 1], [0, 5, -2], 4, '#ffffff', [Math.PI / 2, 0, 0]);
+  envPanel([2, 3], [1, 1, 4], 0.75, '#9eb6c5', [0, Math.PI, 0]);
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const environment = keep(pmrem.fromScene(envScene, 0.035, 0.1, 30));
+  scene.environment = environment.texture;
+  scene.environmentIntensity = 0.68;
+  envResources.forEach(x => x.dispose()); pmrem.dispose();
+
+  const material = (color, opts = {}) => keep(new THREE.MeshStandardMaterial({ color, metalness: 0.15, roughness: 0.48, ...opts }));
+  const M = {
+    ivory: keep(new THREE.MeshPhysicalMaterial({ color: '#d9e1dd', metalness: 0.24, roughness: 0.28, clearcoat: 0.45, clearcoatRoughness: 0.25 })),
+    graphite: material('#192128', { metalness: 0.68, roughness: 0.32 }),
+    graphiteSoft: material('#232c33', { metalness: 0.35, roughness: 0.52 }),
+    aluminum: material('#a7b7bd', { metalness: 0.92, roughness: 0.27 }),
+    darkSteel: material('#48555c', { metalness: 0.89, roughness: 0.32 }),
+    tire: material('#111518', { metalness: 0.02, roughness: 0.91 }),
+    tread: material('#1b2022', { metalness: 0.02, roughness: 0.87 }),
+    black: material('#070c10', { metalness: 0.25, roughness: 0.28 }),
+    amber: material('#d4942c', { metalness: 0.3, roughness: 0.34 }),
+    glass: keep(new THREE.MeshPhysicalMaterial({ color: '#173d4c', metalness: 0.38, roughness: 0.075, clearcoat: 1, clearcoatRoughness: 0.05 })),
+    rubber: material('#11181c', { metalness: 0.03, roughness: 0.78 }),
+    red: material('#a02e2a', { roughness: 0.3 }),
+    indicator: material('#d7e4da', { emissive: '#a5ceb4', emissiveIntensity: 0.35, roughness: 0.2 }),
+  };
+  const addMesh = (parent, geometry, mat, position, rotation = [0, 0, 0], shadow = true) => {
+    const mesh = new THREE.Mesh(geometry, mat);
+    mesh.position.set(...position); mesh.rotation.set(...rotation);
+    mesh.castShadow = shadow; mesh.receiveShadow = true; parent.add(mesh);
     return mesh;
+  };
+  const box = (parent, size, pos, mat, rot, shadow = true) => addMesh(parent, keep(new THREE.BoxGeometry(...size)), mat, pos, rot, shadow);
+  const cylinder = (parent, radius, height, pos, mat, rot = [0, 0, 0], segments = 40) => addMesh(parent, keep(new THREE.CylinderGeometry(radius, radius, height, segments)), mat, pos, rot);
+  const torus = (parent, radius, tube, pos, mat, rot = [0, 0, 0]) => addMesh(parent, keep(new THREE.TorusGeometry(radius, tube, 10, 40)), mat, pos, rot);
+  function plate(parent, width, depth, height, radius, pos, mat, bevel = 0.015) {
+    const shape = new THREE.Shape();
+    const x = -width / 2, y = -depth / 2, r = radius;
+    shape.moveTo(x + r, y); shape.lineTo(x + width - r, y);
+    shape.quadraticCurveTo(x + width, y, x + width, y + r);
+    shape.lineTo(x + width, y + depth - r); shape.quadraticCurveTo(x + width, y + depth, x + width - r, y + depth);
+    shape.lineTo(x + r, y + depth); shape.quadraticCurveTo(x, y + depth, x, y + depth - r);
+    shape.lineTo(x, y + r); shape.quadraticCurveTo(x, y, x + r, y); shape.closePath();
+    return addMesh(parent, keep(new THREE.ExtrudeGeometry(shape, { depth: height, steps: 1, curveSegments: 10, bevelEnabled: true, bevelSegments: 3, bevelSize: bevel, bevelThickness: bevel })), mat, pos, [-Math.PI / 2, 0, 0]);
   }
-  function label(parent, text, position, width, options = {}) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 768; canvas.height = 144;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (options.background) {
-      ctx.fillStyle = options.background;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-    ctx.fillStyle = options.color || '#4d6570';
-    ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
-    ctx.font = `600 ${options.fontSize || 54}px system-ui, sans-serif`;
-    ctx.fillText(text, 384, 72);
-    const texture = keep(new THREE.CanvasTexture(canvas));
-    texture.colorSpace = THREE.SRGBColorSpace;
-    const material = keep(new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
-    const mesh = new THREE.Mesh(keep(new THREE.PlaneGeometry(width, width * 144 / 768)), material);
-    mesh.position.set(...position);
-    if (options.floor) mesh.rotation.x = -Math.PI / 2;
-    else mesh.quaternion.copy(camera.quaternion);
-    parent.add(mesh);
-    return mesh;
-  }
-
-  scene.add(new THREE.HemisphereLight('#e0eff6', '#263b44', 2.2));
-  const sun = new THREE.DirectionalLight('#fff9e8', 4.1);
-  sun.position.set(-2.5, 7.5, 4.5);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(1536, 1536);
-  sun.shadow.camera.left = -6; sun.shadow.camera.right = 6;
-  sun.shadow.camera.top = 5; sun.shadow.camera.bottom = -5;
-  sun.shadow.camera.near = 0.5; sun.shadow.camera.far = 20;
-  sun.shadow.normalBias = 0.025;
-  scene.add(sun);
-  const fill = new THREE.DirectionalLight('#c5e4f2', 1.1);
-  fill.position.set(4, 3, -4); scene.add(fill);
-
-  // Slab, expansion joints, marking tape and a restrained industrial backdrop.
-  box(scene, [16, 0.16, 12], [0, -0.1, 0], C.floor, { shadow: false });
-  for (let x = -6; x <= 6; x += 2) box(scene, [0.013, 0.003, 10], [x, -0.014, 0], C.seam, { shadow: false });
-  for (let z = -4; z <= 4; z += 2) box(scene, [14, 0.003, 0.013], [0, -0.014, z], C.seam, { shadow: false });
-  for (const z of [-1.22, 1.22]) box(scene, [4.7, 0.006, 0.055], [0.15, 0.002, z], C.chalk, { shadow: false });
-  for (const x of [-2.2, 2.5]) box(scene, [0.055, 0.006, 2.44], [x, 0.002, 0], C.chalk, { shadow: false });
-  for (let i = 0; i < 12; i++) {
-    const strip = box(scene, [0.17, 0.008, 0.17], [-1.85 + i * 0.34, 0.008, 1.18], i % 2 ? C.graphite : C.amber, { shadow: false });
-    strip.rotation.y = Math.PI / 4;
-  }
-  label(scene, 'ROBOT TEST CELL  /  01', [0.2, 0.015, 1.62], 2.5, { floor: true, color: '#aac1ca', fontSize: 48 });
-  // A dashed mission route helps a small measured displacement remain legible.
-  for (let i = 0; i < 14; i++) box(scene, [0.11, 0.006, 0.016], [-0.75 + i * 0.18, 0.012, 0], C.chalk, { shadow: false });
-  const dock = new THREE.Group(); dock.position.set(2.22, 0, 0); scene.add(dock);
-  box(dock, [0.16, 0.62, 0.86], [0, 0.31, 0], C.graphite);
-  box(dock, [0.18, 0.12, 0.42], [-0.025, 0.48, 0], C.white);
-  box(dock, [0.18, 0.05, 0.16], [-0.035, 0.48, 0], C.green);
-  box(dock, [0.5, 0.07, 1.02], [-0.12, 0.03, 0], C.steel);
-  label(scene, 'DOCK', [2.05, 0.02, 0.84], 0.6, { floor: true, color: '#aac1ca', fontSize: 64 });
-
-  const rack = new THREE.Group(); rack.position.set(-0.3, 0, -2.85); scene.add(rack);
-  const rackMaterial = mat('#4f6a77', { metalness: 0.5, roughness: 0.5 });
-  for (const x of [-1.8, 0, 1.8]) for (const z of [-0.37, 0.37]) box(rack, [0.065, 1.8, 0.065], [x, 0.9, z], rackMaterial);
-  for (const y of [0.14, 0.82, 1.48]) {
-    box(rack, [3.65, 0.07, 0.82], [0, y, 0], rackMaterial);
-    for (let i = 0; i < 4; i++) {
-      const crate = new THREE.Group(); crate.position.set(-1.35 + i * 0.88, y + 0.24, 0); rack.add(crate);
-      box(crate, [0.62, 0.39, 0.59], [0, 0, 0], i % 2 ? C.plastic : C.white);
-      box(crate, [0.48, 0.05, 0.61], [0, 0.08, 0], rackMaterial);
-      box(crate, [0.18, 0.1, 0.008], [0, -0.055, 0.302], C.chalk);
-    }
-  }
-  // A service cabinet, cable conduit and safety bollards provide scene scale.
-  box(scene, [0.62, 1.47, 0.5], [3.4, 0.735, -2.4], C.white);
-  box(scene, [0.56, 1.32, 0.018], [3.4, 0.75, -2.14], C.aluminum);
-  box(scene, [0.025, 0.2, 0.035], [3.61, 0.8, -2.11], C.graphite);
-  for (const x of [-2.55, 2.8]) {
-    cylinder(scene, 0.067, 0.72, [x, 0.36, -1.5], C.amber, 20);
-    cylinder(scene, 0.071, 0.13, [x, 0.5, -1.5], C.graphite, 20);
-    box(scene, [0.26, 0.035, 0.26], [x, 0.015, -1.5], C.steel);
+  const boltGeometry = keep(new THREE.CylinderGeometry(0.016, 0.016, 0.008, 6));
+  function bolt(parent, pos, rot = [0, 0, 0]) { return addMesh(parent, boltGeometry, M.aluminum, pos, rot, false); }
+  function decal(parent, text, pos, width, height = 0.10, color = '#bbc9ce', rotation = [0, 0, 0]) {
+    const c = document.createElement('canvas'); c.width = 1024; c.height = 128;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = color; ctx.font = '600 65px Arial, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(text, 512, 64);
+    const tex = keep(new THREE.CanvasTexture(c)); tex.colorSpace = THREE.SRGBColorSpace;
+    return addMesh(parent, keep(new THREE.PlaneGeometry(width, height)), keep(new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, toneMapped: false })), pos, rotation, false);
   }
 
-  // Original autonomous mobile robot: suspension, tread, service panels,
-  // bumper, optics and a removable inspection payload.
+  scene.add(new THREE.AmbientLight('#9bb1bf', 0.22));
+  const key = new THREE.DirectionalLight('#ffe8ca', 4.6); key.position.set(-3, 6, 4.2); key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048); key.shadow.camera.left = -4; key.shadow.camera.right = 4;
+  key.shadow.camera.top = 4; key.shadow.camera.bottom = -4; key.shadow.camera.near = 0.1; key.shadow.camera.far = 18;
+  key.shadow.normalBias = 0.015; key.shadow.bias = -0.0001; scene.add(key);
+  const rim = new THREE.DirectionalLight('#a7d4e9', 3.4); rim.position.set(2.5, 3.5, -3.2); scene.add(rim);
+  const front = new THREE.DirectionalLight('#d2e1e8', 1.0); front.position.set(1, 1.5, 5); scene.add(front);
+  const warm = new THREE.PointLight('#dca953', 4, 5); warm.position.set(-1.4, 0.5, -1.8); scene.add(warm);
+
+  // Subtle original procedural concrete, no tiled sci-fi grid or warehouse props.
+  const noiseCanvas = document.createElement('canvas'); noiseCanvas.width = noiseCanvas.height = 256;
+  const nctx = noiseCanvas.getContext('2d'); const noise = nctx.createImageData(256, 256);
+  let seed = 839;
+  for (let i = 0; i < noise.data.length; i += 4) {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    const v = 126 + (seed >>> 28) - 8; noise.data.set([v, v, v, 255], i);
+  }
+  nctx.putImageData(noise, 0, 0);
+  const concrete = keep(new THREE.CanvasTexture(noiseCanvas)); concrete.wrapS = concrete.wrapT = THREE.RepeatWrapping; concrete.repeat.set(12, 12);
+  const floorMat = material('#182127', { metalness: 0.15, roughness: 0.69, bumpMap: concrete, bumpScale: 0.012 });
+  const floor = addMesh(scene, keep(new THREE.PlaneGeometry(32, 32)), floorMat, [0, -0.005, 0], [-Math.PI / 2, 0, 0], false);
+  floor.receiveShadow = true;
+  box(scene, [12, 0.008, 0.009], [0, 0.001, -1.55], material('#4c5557', { roughness: 0.9 }), undefined, false);
+  // Far architectural planes only: enough depth without shrinking the product.
+  box(scene, [8, 3.5, 0.22], [0, 1.75, -5.8], material('#10191f', { roughness: 0.9 }), undefined, false);
+  box(scene, [0.06, 3.5, 0.12], [-2.8, 1.75, -5.62], M.darkSteel, undefined, false);
+  box(scene, [0.06, 3.5, 0.12], [2.8, 1.75, -5.62], M.darkSteel, undefined, false);
+
   const robot = new THREE.Group(); scene.add(robot);
-  const robotStart = -0.55;
-  robot.position.set(robotStart, 0, 0);
-  roundedPlate(robot, 1.42, 0.91, 0.20, 0.13, [0, 0.25, 0], C.graphite);
-  roundedPlate(robot, 1.29, 0.85, 0.20, 0.12, [0, 0.43, 0], C.white);
-  roundedPlate(robot, 1.15, 0.75, 0.038, 0.08, [0, 0.638, 0], C.aluminum);
+  const robotStartX = 0.38; robot.position.x = robotStartX;
+  // Low stance and separate undercarriage/shell/deck parts make the assembly legible.
+  plate(robot, 1.80, 1.09, 0.16, 0.18, [0, 0.24, 0], M.graphite, 0.022);
+  plate(robot, 1.72, 1.045, 0.19, 0.16, [0, 0.397, 0], M.ivory, 0.024);
+  plate(robot, 1.61, 0.97, 0.026, 0.13, [-0.01, 0.606, 0], M.graphiteSoft, 0.010);
+  plate(robot, 1.48, 0.85, 0.025, 0.10, [-0.02, 0.65, 0], M.aluminum, 0.008);
+  // Nose fascia recessed between two protective corner covers.
+  box(robot, [0.048, 0.14, 0.75], [0.873, 0.47, 0], M.black);
+  box(robot, [0.052, 0.033, 0.48], [0.899, 0.488, 0], M.indicator);
+  box(robot, [0.07, 0.11, 0.96], [0.915, 0.29, 0], M.rubber);
+  for (const z of [-0.37, 0.37]) {
+    box(robot, [0.063, 0.14, 0.10], [0.902, 0.445, z], M.graphite);
+    cylinder(robot, 0.027, 0.011, [0.94, 0.448, z], M.glass, [0, 0, Math.PI / 2], 32);
+  }
+  // Rubber seam protects every edge while preserving the shell's panel breaks.
+  for (const z of [-0.543, 0.543]) {
+    box(robot, [1.32, 0.025, 0.016], [-0.04, 0.399, z], M.rubber);
+    box(robot, [0.46, 0.095, 0.025], [-0.37, 0.503, z], M.graphiteSoft);
+    for (let i = 0; i < 7; i++) box(robot, [0.018, 0.066, 0.012], [-0.55 + i * 0.058, 0.501, z * 1.03], M.black, undefined, false);
+    for (const x of [-0.68, -0.04, 0.64]) bolt(robot, [x, 0.524, z * 1.02], [Math.PI / 2, 0, 0]);
+  }
+  // Four independent wheels, hard rims, lug bolts and deep all-around tread.
   const wheels = [];
-  for (const x of [-0.43, 0.43]) for (const z of [-0.49, 0.49]) {
-    const wheel = new THREE.Group(); wheel.position.set(x, 0.22, z); robot.add(wheel); wheels.push(wheel);
-    const tyre = cylinder(wheel, 0.218, 0.14, [0, 0, 0], C.black, 32); tyre.rotation.x = Math.PI / 2;
-    const hub = cylinder(wheel, 0.112, 0.15, [0, 0, 0], C.aluminum, 24); hub.rotation.x = Math.PI / 2;
-    const cap = cylinder(wheel, 0.043, 0.16, [0, 0, 0], C.graphite, 24); cap.rotation.x = Math.PI / 2;
-    for (let i = 0; i < 14; i++) {
-      const angle = i * Math.PI * 2 / 14;
-      const tread = box(wheel, [0.065, 0.023, 0.147], [Math.sin(angle) * 0.213, Math.cos(angle) * 0.213, 0], C.black, { shadow: false });
-      tread.rotation.z = -angle;
+  for (const x of [-0.59, 0.59]) for (const z of [-0.61, 0.61]) {
+    const wheel = new THREE.Group(); wheel.position.set(x, 0.245, z); robot.add(wheel); wheels.push(wheel);
+    cylinder(wheel, 0.24, 0.19, [0, 0, 0], M.tire, [Math.PI / 2, 0, 0], 48);
+    torus(wheel, 0.195, 0.025, [0, 0, Math.sign(z) * 0.098], M.tread);
+    cylinder(wheel, 0.135, 0.20, [0, 0, 0], M.darkSteel, [Math.PI / 2, 0, 0], 40);
+    cylinder(wheel, 0.087, 0.212, [0, 0, 0], M.aluminum, [Math.PI / 2, 0, 0], 32);
+    cylinder(wheel, 0.038, 0.219, [0, 0, 0], M.graphite, [Math.PI / 2, 0, 0], 24);
+    for (let n = 0; n < 6; n++) {
+      const a = n * Math.PI / 3;
+      bolt(wheel, [Math.cos(a) * 0.105, Math.sin(a) * 0.105, Math.sign(z) * 0.109], [Math.PI / 2, 0, 0]);
+    }
+    for (let n = 0; n < 32; n++) {
+      const a = n * Math.PI * 2 / 32;
+      box(wheel, [0.032, 0.015, 0.188], [Math.sin(a) * 0.239, Math.cos(a) * 0.239, 0], M.tread, [0, 0, -a], false);
     }
   }
-  for (const z of [-0.434, 0.434]) {
-    box(robot, [0.73, 0.11, 0.018], [-0.05, 0.53, z], C.graphite);
-    for (let i = 0; i < 8; i++) box(robot, [0.015, 0.07, 0.008], [-0.32 + i * 0.075, 0.53, z * 1.025], C.steel, { shadow: false });
-    for (const x of [-0.48, 0.45]) {
-      const screw = cylinder(robot, 0.014, 0.018, [x, 0.54, z * 1.03], C.steel, 8); screw.rotation.x = Math.PI / 2;
-    }
+  // Recessed payload bay, machined rails and removable upper service cover.
+  for (const z of [-0.29, 0.29]) {
+    box(robot, [1.15, 0.035, 0.045], [-0.08, 0.70, z], M.graphite);
+    for (const x of [-0.54, -0.12, 0.40]) bolt(robot, [x, 0.723, z]);
   }
-  // Front rubber bumper and two actual-looking sensor windows.
-  box(robot, [0.09, 0.09, 0.65], [0.71, 0.29, 0], C.black);
-  for (const z of [-0.24, 0.24]) {
-    box(robot, [0.035, 0.072, 0.15], [0.662, 0.52, z], C.graphite);
-    box(robot, [0.039, 0.035, 0.097], [0.665, 0.526, z], C.lens);
+  plate(robot, 0.64, 0.48, 0.035, 0.055, [-0.31, 0.718, 0], M.graphiteSoft, 0.009);
+  for (let n = 0; n < 9; n++) box(robot, [0.022, 0.007, 0.27], [-0.55 + n * 0.055, 0.765, 0], M.black, undefined, false);
+  for (const x of [-0.60, -0.01]) for (const z of [-0.205, 0.205]) bolt(robot, [x, 0.765, z]);
+
+  // Twin-channel optical head with a stiff low mast, anodized bezel and real
+  // lens construction: housing, dark aperture, glass, internal pupil, glint.
+  plate(robot, 0.30, 0.34, 0.045, 0.035, [0.43, 0.70, 0], M.darkSteel, 0.008);
+  box(robot, [0.085, 0.37, 0.105], [0.43, 0.92, 0], M.graphite);
+  box(robot, [0.04, 0.32, 0.04], [0.37, 0.91, -0.07], M.aluminum);
+  const optics = new THREE.Group(); optics.position.set(0.44, 1.13, 0); robot.add(optics);
+  plate(optics, 0.28, 0.61, 0.17, 0.055, [0, -0.07, 0], M.ivory, 0.015);
+  box(optics, [0.03, 0.14, 0.51], [0.161, 0.025, 0], M.graphite);
+  const opticsAccent = [];
+  for (const z of [-0.145, 0.145]) {
+    cylinder(optics, 0.065, 0.043, [0.183, 0.028, z], M.black, [0, 0, Math.PI / 2], 40);
+    torus(optics, 0.058, 0.009, [0.211, 0.028, z], M.aluminum, [0, Math.PI / 2, 0]);
+    const lens = cylinder(optics, 0.048, 0.01, [0.217, 0.028, z], M.glass, [0, 0, Math.PI / 2], 40); opticsAccent.push(lens);
+    cylinder(optics, 0.020, 0.012, [0.224, 0.028, z], M.black, [0, 0, Math.PI / 2], 32);
+    const glint = material('#9ed7e6', { emissive: '#468b9d', emissiveIntensity: 0.5, metalness: 0.65, roughness: 0.1 });
+    cylinder(optics, 0.008, 0.014, [0.226, 0.043, z - 0.018], glint, [0, 0, Math.PI / 2], 16);
   }
-  const statusMaterial = mat('#2c9f80', { emissive: '#2c9f80', emissiveIntensity: 0.7 });
-  box(robot, [0.06, 0.029, 0.34], [0.704, 0.40, 0], statusMaterial);
-  box(robot, [0.06, 0.029, 0.28], [-0.709, 0.40, 0], C.red);
-  // Mounting rails and a sensor mast, with strain-relieved cable.
-  for (const z of [-0.23, 0.23]) box(robot, [0.78, 0.045, 0.055], [-0.04, 0.7, z], C.graphite);
-  roundedPlate(robot, 0.47, 0.53, 0.07, 0.04, [-0.18, 0.72, 0], C.amber);
-  box(robot, [0.075, 0.67, 0.075], [-0.18, 1.08, 0], C.graphite);
-  box(robot, [0.12, 0.24, 0.12], [-0.18, 0.87, 0], C.steel);
-  const cableCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-0.24, 0.79, -0.09), new THREE.Vector3(-0.31, 1.05, -0.08),
-    new THREE.Vector3(-0.27, 1.35, -0.05), new THREE.Vector3(-0.12, 1.40, -0.02),
-  ]);
-  const cable = new THREE.Mesh(keep(new THREE.TubeGeometry(cableCurve, 16, 0.014, 7, false)), C.black); robot.add(cable);
-  roundedPlate(robot, 0.36, 0.27, 0.14, 0.04, [-0.11, 1.37, 0], C.white);
-  box(robot, [0.027, 0.106, 0.23], [0.082, 1.445, 0], C.graphite);
-  for (const z of [-0.066, 0.066]) {
-    const lens = cylinder(robot, 0.035, 0.027, [0.10, 1.445, z], C.lens, 24); lens.rotation.z = Math.PI / 2;
-    const surround = new THREE.Mesh(keep(new THREE.TorusGeometry(0.038, 0.006, 6, 24)), C.aluminum);
-    surround.position.set(0.116, 1.445, z); surround.rotation.y = Math.PI / 2; robot.add(surround);
+  const cable = new THREE.CatmullRomCurve3([new THREE.Vector3(0.31, 0.74, -0.10), new THREE.Vector3(0.25, 0.87, -0.13), new THREE.Vector3(0.30, 1.08, -0.13), new THREE.Vector3(0.39, 1.12, -0.10)]);
+  addMesh(robot, keep(new THREE.TubeGeometry(cable, 24, 0.013, 8, false)), M.rubber, [0, 0, 0]);
+  // Rear lidar has an optical band, screw ring and subtle engraved top cap.
+  cylinder(robot, 0.125, 0.052, [-0.55, 0.744, 0], M.darkSteel);
+  cylinder(robot, 0.113, 0.11, [-0.55, 0.824, 0], M.glass);
+  cylinder(robot, 0.128, 0.018, [-0.55, 0.886, 0], M.aluminum);
+  cylinder(robot, 0.098, 0.008, [-0.55, 0.899, 0], M.graphite);
+  for (let n = 0; n < 6; n++) bolt(robot, [-0.55 + Math.cos(n * Math.PI / 3) * 0.112, 0.903, Math.sin(n * Math.PI / 3) * 0.112]);
+  // Physical local controls are decorative, not an emergency-stop simulation.
+  cylinder(robot, 0.051, 0.018, [-0.43, 0.707, 0.35], M.amber, undefined, 24);
+  cylinder(robot, 0.031, 0.034, [-0.43, 0.731, 0.35], M.red, undefined, 24);
+  cylinder(robot, 0.025, 0.075, [-0.68, 0.738, -0.31], M.amber, undefined, 24);
+  const sidePlate = box(robot, [0.65, 0.105, 0.013], [0.28, 0.501, 0.556], M.graphiteSoft);
+  decal(robot, 'RCS  /  ROVER 01', [0.28, 0.505, 0.566], 0.53, 0.050, '#d6ded9');
+  sidePlate.name = 'original_product_identifier';
+  decal(robot, 'AUTONOMOUS MOBILE PLATFORM', [0.03, 0.31, 0.566], 0.72, 0.032, '#83959d');
+  for (const x of [-0.74, 0.74]) for (const z of [-0.39, 0.39]) bolt(robot, [x, 0.647, z]);
+
+  // Contact occlusion is a conventional illustrative shadow, not a physics field.
+  const shadowCanvas = document.createElement('canvas'); shadowCanvas.width = shadowCanvas.height = 256;
+  const sctx = shadowCanvas.getContext('2d'); const grad = sctx.createRadialGradient(128, 128, 20, 128, 128, 128);
+  grad.addColorStop(0, 'rgba(0,0,0,.68)'); grad.addColorStop(0.6, 'rgba(0,0,0,.34)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+  sctx.fillStyle = grad; sctx.fillRect(0, 0, 256, 256);
+  const shadowTexture = keep(new THREE.CanvasTexture(shadowCanvas));
+  const contact = addMesh(scene, keep(new THREE.PlaneGeometry(2.8, 1.9)), keep(new THREE.MeshBasicMaterial({ map: shadowTexture, transparent: true, depthWrite: false })), [robotStartX, 0.002, 0], [-Math.PI / 2, 0, 0], false);
+
+  // The authorization boundary is a restrained wire diagram beside the real
+  // robot, not an imaginary physical shield. No cartoon icons or cube packets.
+  const boundary = new THREE.Group(); scene.add(boundary);
+  const gate = new THREE.Vector3(-0.96, 0.53, 0.57);
+  const source = new THREE.Vector3(-2.0, 0.53, 0.57);
+  const boundaryLineMaterial = keep(new THREE.LineBasicMaterial({ color: '#728690', transparent: true, opacity: 0.74 }));
+  const boundaryPoints = [new THREE.Vector3(gate.x, 0.15, 0.38), new THREE.Vector3(gate.x, 1.02, 0.38), new THREE.Vector3(gate.x, 1.02, 0.73), new THREE.Vector3(gate.x, 0.15, 0.73)];
+  const gateWire = new THREE.Line(keep(new THREE.BufferGeometry().setFromPoints(boundaryPoints)), boundaryLineMaterial); boundary.add(gateWire);
+  const boundaryWireMaterial = keep(new THREE.MeshBasicMaterial({ color: '#9aaeb5', transparent: true, opacity: 0.8 }));
+  const verticalWire = addMesh(boundary, keep(new THREE.CylinderGeometry(0.004, 0.004, 0.88, 8)), boundaryWireMaterial, [gate.x, 0.59, gate.z], undefined, false);
+  verticalWire.name = 'diagrammatic_authorization_boundary';
+  for (const y of [0.15, 1.02]) {
+    const tick = new THREE.Line(keep(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(gate.x - 0.035, y, 0.57), new THREE.Vector3(gate.x + 0.035, y, 0.57)])), boundaryLineMaterial); boundary.add(tick);
   }
-  cylinder(robot, 0.107, 0.09, [0.38, 0.72, 0], C.graphite, 32);
-  const lidar = cylinder(robot, 0.098, 0.07, [0.38, 0.8, 0], C.lens, 32);
-  cylinder(robot, 0.107, 0.019, [0.38, 0.844, 0], C.aluminum, 32);
-  const beaconMaterial = mat('#f3b736', { emissive: '#d58f15', emissiveIntensity: 0.7 });
-  cylinder(robot, 0.034, 0.07, [-0.5, 0.72, 0.25], beaconMaterial, 16);
-  cylinder(robot, 0.04, 0.014, [-0.5, 0.68, 0.25], C.graphite, 16);
-  const emergencyBase = cylinder(robot, 0.05, 0.025, [-0.45, 0.697, -0.22], C.amber, 20);
-  cylinder(robot, 0.029, 0.035, [-0.45, 0.725, -0.22], C.red, 20);
-  emergencyBase.name = 'illustrative_emergency_button_not_functional';
-  // Matte identifier plate, avoids oversized floating HUDs on the robot.
-  label(robot, 'RCS  /  01', [0.03, 0.455, 0.455], 0.43, { color: '#eef4ed', fontSize: 70 });
+  const routeMaterial = keep(new THREE.LineBasicMaterial({ color: '#6d7e86', transparent: true, opacity: 0.28 }));
+  const route = new THREE.Line(keep(new THREE.BufferGeometry().setFromPoints([source, gate, new THREE.Vector3(robotStartX - 0.80, 0.53, 0.57)])), routeMaterial); scene.add(route);
+  const pulseMaterial = keep(new THREE.LineBasicMaterial({ color: '#e8b36c', transparent: true, opacity: 0.95 }));
+  const pulse = new THREE.Line(keep(new THREE.BufferGeometry().setFromPoints([source, source, source])), pulseMaterial); scene.add(pulse);
+  const pulseHeadMaterial = keep(new THREE.MeshBasicMaterial({ color: '#efbd77' }));
+  const pulseHead = addMesh(scene, keep(new THREE.SphereGeometry(0.022, 14, 10)), pulseHeadMaterial, source.toArray(), undefined, false);
+  const pulseBodyMaterial = keep(new THREE.MeshBasicMaterial({ color: '#efbd77', transparent: true, opacity: 0.95 }));
+  const pulseBodyGeometry = keep(new THREE.CylinderGeometry(0.008, 0.008, 1, 8));
+  const pulseBodies = [0, 1].map(() => addMesh(scene, pulseBodyGeometry, pulseBodyMaterial, [0, 0, 0], undefined, false));
+  const gateHitMaterial = keep(new THREE.MeshBasicMaterial({ color: '#dc6753', transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }));
+  const gateHit = addMesh(scene, keep(new THREE.PlaneGeometry(0.20, 0.62)), gateHitMaterial, gate.toArray(), [0, Math.PI / 2, 0], false);
+  const sensorHighlightMaterial = keep(new THREE.LineBasicMaterial({ color: '#b6d9e9', transparent: true, opacity: 0 }));
+  const sensorHighlight = new THREE.LineSegments(keep(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.04, 0.18, 0.56))), sensorHighlightMaterial);
+  sensorHighlight.position.set(0.177, 0.022, 0); optics.add(sensorHighlight);
+  // A subdued motion witness on the floor, not an invented physical trajectory.
+  const motionLine = new THREE.Line(keep(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(robotStartX, 0.012, 0.79), new THREE.Vector3(robotStartX, 0.012, 0.79)])), keep(new THREE.LineBasicMaterial({ color: '#b7c9c4', transparent: true, opacity: 0.4 }))); scene.add(motionLine);
 
-  // Clear visual request path and authorization boundary. The panel is a
-  // diagrammatic overlay in the world; it is not a claimed physical shield.
-  const signal = new THREE.Group(); scene.add(signal);
-  const gatewayX = -1.6;
-  const shieldShape = new THREE.Shape();
-  shieldShape.moveTo(0, 0.42); shieldShape.lineTo(0.27, 0.30);
-  shieldShape.lineTo(0.25, -0.05); shieldShape.quadraticCurveTo(0.20, -0.28, 0, -0.43);
-  shieldShape.quadraticCurveTo(-0.20, -0.28, -0.25, -0.05);
-  shieldShape.lineTo(-0.27, 0.30); shieldShape.closePath();
-  const shieldMaterial = keep(new THREE.MeshBasicMaterial({ color: '#268e7b', transparent: true, opacity: 0.91, side: THREE.DoubleSide, depthWrite: false }));
-  const shield = new THREE.Mesh(keep(new THREE.ShapeGeometry(shieldShape)), shieldMaterial);
-  shield.position.set(gatewayX, 1.0, 0.33); shield.quaternion.copy(camera.quaternion); signal.add(shield);
-  const checkPoints = [new THREE.Vector3(-0.12, 0.02, 0.014), new THREE.Vector3(-0.025, -0.07, 0.014), new THREE.Vector3(0.14, 0.12, 0.014)];
-  const check = new THREE.Line(keep(new THREE.BufferGeometry().setFromPoints(checkPoints)), keep(new THREE.LineBasicMaterial({ color: '#ffffff' })));
-  shield.add(check);
-  const gatewayLabel = label(signal, 'POLICY CHECK', [gatewayX, 0.46, 0.35], 1.17, { color: '#365965', background: '#e6efed', fontSize: 49 });
-  const blockedMark = label(signal, 'BLOCKED', [gatewayX, 1.62, 0.35], 0.95, { color: '#a82c27', background: '#f4e8e2', fontSize: 58 });
-  blockedMark.visible = false;
-  const pathMaterial = keep(new THREE.LineDashedMaterial({ color: '#558b8b', dashSize: 0.09, gapSize: 0.06, transparent: true, opacity: 0.75 }));
-  const pathPoints = [new THREE.Vector3(-3.1, 1.02, 0.33), new THREE.Vector3(gatewayX, 1.02, 0.33), new THREE.Vector3(-0.6, 1.02, 0.33)];
-  const requestPath = new THREE.Line(keep(new THREE.BufferGeometry().setFromPoints(pathPoints)), pathMaterial);
-  requestPath.computeLineDistances(); signal.add(requestPath);
-  label(signal, 'REQUEST', [-2.92, 1.28, 0.32], 0.85, { color: '#c4d6dd', fontSize: 52 });
-  const packetMaterial = mat('#248f7b', { emissive: '#248f7b', emissiveIntensity: 0.55 });
-  const packetGeometry = keep(new THREE.BoxGeometry(0.075, 0.075, 0.075));
-  const packets = Array.from({ length: 4 }, () => { const p = new THREE.Mesh(packetGeometry, packetMaterial); signal.add(p); return p; });
-  const rejectionRing = new THREE.Mesh(keep(new THREE.RingGeometry(0.34, 0.355, 48)), keep(new THREE.MeshBasicMaterial({ color: '#bd5147', transparent: true, opacity: 0.0, side: THREE.DoubleSide, depthWrite: false })));
-  rejectionRing.position.copy(shield.position); rejectionRing.position.z += 0.012; rejectionRing.quaternion.copy(camera.quaternion); signal.add(rejectionRing);
+  // Two unobtrusive HTML labels keep the diagram readable at every pixel ratio.
+  // Root may setLanguage(), otherwise the document language is respected.
+  const annotations = [source, new THREE.Vector3(gate.x, 1.10, gate.z)].map((point, index) => {
+    const el = document.createElement('div');
+    el.className = `scene-annotation scene-annotation-${index ? 'guard' : 'origin'}`;
+    el.style.cssText = 'position:absolute;z-index:2;pointer-events:none;transform:translate(-50%,-100%);padding:7px 9px;border:1px solid #82939a55;border-radius:3px;background:#111b21d9;color:#cbd8d9;font:600 9px/1.1 system-ui,sans-serif;letter-spacing:.12em;white-space:nowrap;';
+    el.setAttribute('aria-hidden', 'true'); container.append(el);
+    return { point: point.clone().add(new THREE.Vector3(0, index ? 0 : 0.10, 0)), el };
+  });
 
-  // Narrow sensor field of view: imagery is deliberately synthetic.
-  const fovGeometry = keep(new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(0.1, 1.45, 0), new THREE.Vector3(1.3, 0.02, -0.72),
-    new THREE.Vector3(1.3, 0.02, 0.72), new THREE.Vector3(0.1, 1.45, 0),
-  ]));
-  const fovMaterial = keep(new THREE.LineBasicMaterial({ color: '#638e9c', transparent: true, opacity: 0.25 }));
-  const fov = new THREE.Line(fovGeometry, fovMaterial); robot.add(fov);
-
-  let mode = { kind: 'normal', allowed: true };
-  let progress = 0, paused = true, frame = 0, disposed = false;
-  let viewWidth = 0, viewHeight = 0;
+  let mode = { kind: 'normal', allowed: true, movementAllowed: true };
+  let progress = 0, paused = true, disposed = false, frame = 0, width = 0, height = 0, language = null;
+  const clamp = x => Math.max(0, Math.min(1, x));
+  const ease = x => { x = clamp(x); return x * x * (3 - 2 * x); };
+  const vector = new THREE.Vector3();
   function update() {
-    const p = Math.max(0, Math.min(1, progress));
-    const dataMode = mode.kind === 'camera' || mode.kind === 'telemetry';
-    const isReplay = mode.kind === 'replay';
-    const acceptedMotion = mode.allowed || dataMode;
-    const fallbackDistance = isReplay ? 0.05 : 0.725;
-    const distance = Number.isFinite(mode.distanceM) ? Math.max(0, Math.min(3, mode.distanceM)) : fallbackDistance;
-    const meters = isReplay ? distance * Math.min(1, p * 4) : acceptedMotion ? distance * p : 0;
-    robot.position.x = robotStart + meters;
-    for (const wheel of wheels) wheel.rotation.z = -meters / 0.218;
-    // A replay case contains one initial permitted delivery, followed by a
-    // duplicate rejection. Show those two phases instead of implying that a
-    // rejected request caused the initial short movement.
-    const blocked = !mode.allowed && mode.kind !== 'idle' && (!isReplay || p >= 0.25);
-    const color = blocked ? '#bb5148' : '#268e7b';
-    shieldMaterial.color.set(blocked ? '#537b77' : '#268e7b');
-    packetMaterial.color.set(color); packetMaterial.emissive.set(color);
-    pathMaterial.color.set(color);
-    blockedMark.visible = blocked;
-    statusMaterial.color.set('#2c9f80');
-    statusMaterial.emissive.set('#2c9f80');
-    fovMaterial.opacity = dataMode ? 0.56 : 0.19;
-    const active = !paused && p > 0 && p < 1;
-    beaconMaterial.emissiveIntensity = active && !reducedMotion ? 0.35 + 0.45 * Math.sin(p * 36) ** 2 : 0.35;
-    lidar.rotation.y = p * 8;
-    const endX = blocked ? gatewayX - 0.3 : robot.position.x - 0.12;
-    requestPath.geometry.setFromPoints([
-      new THREE.Vector3(-3.1, 1.02, 0.33), new THREE.Vector3(gatewayX, 1.02, 0.33),
-      new THREE.Vector3(blocked ? gatewayX : endX, 1.02, 0.33),
-    ]);
-    requestPath.computeLineDistances();
-    for (let i = 0; i < packets.length; i++) {
-      const packet = packets[i];
-      const phase = reducedMotion ? i / 4 : (p * 5 + i / 4) % 1;
-      packet.position.set(-3.1 + phase * (endX + 3.1), 1.02, 0.33);
-      packet.visible = mode.kind !== 'idle' && p > 0.015 && p < 0.995;
-      packet.rotation.set(0.2, phase * 2, 0.2);
-    }
-    rejectionRing.material.opacity = blocked && active ? (reducedMotion ? 0.3 : 0.12 + 0.35 * Math.sin(p * 22) ** 2) : 0;
-    rejectionRing.scale.setScalar(1 + (reducedMotion ? 0 : Math.sin(p * 22) ** 2 * 0.13));
-    gatewayLabel.visible = mode.kind !== 'idle';
-    signal.visible = mode.kind !== 'idle';
+    const p = clamp(progress), cameraMode = mode.kind === 'camera', telemetry = mode.kind === 'telemetry', replay = mode.kind === 'replay';
+    const motionAllowed = mode.movementAllowed ?? (mode.allowed || cameraMode || telemetry);
+    const d = Number.isFinite(mode.distanceM) ? Math.max(0, Math.min(3, mode.distanceM)) : replay ? 0.05 : 0.725;
+    const moveP = replay ? ease(p / 0.36) : ease((p - 0.28) / 0.72);
+    const meters = (replay || motionAllowed) ? d * moveP : 0;
+    robot.position.x = robotStartX + meters; contact.position.x = robot.position.x;
+    for (const wheel of wheels) wheel.rotation.z = -meters / 0.24;
+    motionLine.geometry.setFromPoints([new THREE.Vector3(robotStartX, 0.012, 0.79), new THREE.Vector3(robot.position.x, 0.012, 0.79)]);
+    const blocked = !mode.allowed && (!replay || p >= 0.43);
+    const color = blocked ? '#df735f' : '#e4c28a';
+    pulseMaterial.color.set(color); pulseHeadMaterial.color.set(color); pulseBodyMaterial.color.set(color);
+    boundaryLineMaterial.color.set(blocked && p >= 0.3 ? '#d96b58' : '#71878f');
+    boundaryWireMaterial.color.set(blocked && p >= 0.3 ? '#db7b67' : '#9aaeb5');
+    boundaryLineMaterial.opacity = p >= 0.3 ? 0.95 : 0.60;
+    const receiver = cameraMode || telemetry ? new THREE.Vector3(robot.position.x + 0.64, 1.158, 0.145) : new THREE.Vector3(robot.position.x - 0.79, 0.53, 0.57);
+    route.geometry.setFromPoints([source, gate, receiver]);
+    const maxProgress = blocked ? 0.42 : 1;
+    let t = reducedMotion ? maxProgress : Math.min(maxProgress, p * 1.8);
+    if (replay && p >= 0.43) t = Math.min(0.42, (p - 0.43) * 2.8);
+    const sample = fraction => {
+      if (fraction <= 0.42) return new THREE.Vector3().lerpVectors(source, gate, fraction / 0.42);
+      return new THREE.Vector3().lerpVectors(gate, receiver, (fraction - 0.42) / 0.58);
+    };
+    const tip = sample(t), tail = sample(Math.max(0, t - 0.22));
+    const middle = t > 0.42 && t - 0.22 < 0.42 ? gate : tail.clone().lerp(tip, 0.5);
+    pulse.geometry.setFromPoints([tail, middle, tip]);
+    const parts = t > 0.42 && t - 0.22 < 0.42 ? [[tail, gate], [gate, tip]] : [[tail, tip]];
+    pulseBodies.forEach((body, index) => {
+      const part = parts[index];
+      body.visible = Boolean(part);
+      if (!part) return;
+      const direction = part[1].clone().sub(part[0]);
+      body.position.copy(part[0]).addScaledVector(direction, 0.5);
+      body.scale.y = Math.max(0.0001, direction.length());
+      body.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+    });
+    pulseHead.position.copy(tip);
+    const active = mode.kind !== 'idle' && p > 0.01 && p < 0.94;
+    pulse.visible = pulseHead.visible = active;
+    pulseBodies.forEach((body, index) => { body.visible = active && Boolean(parts[index]); });
+    pulseMaterial.opacity = p > 0.75 ? Math.max(0, (0.94 - p) / 0.19) : 0.98;
+    pulseBodyMaterial.opacity = pulseMaterial.opacity;
+    const contactMoment = blocked && t >= 0.419 && active;
+    gateHitMaterial.opacity = contactMoment ? (reducedMotion || paused ? 0.14 : 0.10 + 0.13 * Math.sin(p * 32) ** 2) : 0;
+    sensorHighlightMaterial.opacity = cameraMode ? 0.55 : telemetry ? 0.28 : 0;
+    // Incoming camera reads do not turn off optics or stop a permitted mission.
+    boundary.visible = route.visible = mode.kind !== 'idle';
+    const portuguese = (language || document.documentElement.lang || 'en').startsWith('pt');
+    annotations.forEach(({ point, el }, index) => {
+      const projected = point.clone().project(camera);
+      el.style.left = `${Math.max(50, Math.min(width - 50, (projected.x * 0.5 + 0.5) * width))}px`;
+      el.style.top = `${Math.max(54, Math.min(height - 106, (-projected.y * 0.5 + 0.5) * height))}px`;
+      el.style.display = mode.kind === 'idle' ? 'none' : 'block';
+      el.textContent = index ? (portuguese ? 'PROTEÇÃO' : 'GUARD') : (portuguese ? 'PEDIDO' : 'REQUEST');
+    });
+    vector.set(robot.position.x - robotStartX, 0, 0);
   }
-  function render() {
-    if (disposed) return;
-    update();
-    renderer.render(scene, camera);
-  }
+  function render() { if (!disposed) { update(); renderer.render(scene, camera); } }
+  function schedule() { if (!disposed && !document.hidden && !frame) frame = requestAnimationFrame(() => { frame = 0; render(); }); }
   function resize() {
     if (disposed) return;
-    const rect = container.getBoundingClientRect();
-    const width = Math.max(1, Math.round(rect.width));
-    const height = Math.max(1, Math.round(rect.height || 430));
-    if (width === viewWidth && height === viewHeight) return;
-    viewWidth = width; viewHeight = height;
-    camera.aspect = width / height;
-    // Keep the complete request-to-robot story in narrow layouts.
-    camera.fov = width < 540 ? 48 : width < 760 ? 40 : 34;
-    camera.updateProjectionMatrix();
-    renderer.setSize(width, height, false);
-    render();
+    const bounds = container.getBoundingClientRect();
+    const w = Math.max(1, Math.round(bounds.width)), h = Math.max(1, Math.round(bounds.height || 500));
+    if (w === width && h === height) return;
+    width = w; height = h; camera.aspect = w / h;
+    // Product framing is based on a controlled horizontal span. The robot is
+    // intentionally large, rather than shrinking into a wide warehouse view.
+    const horizontalSpan = Math.max(w < 560 ? 4.25 : 4.7, camera.aspect * 2.10);
+    const distance = camera.position.distanceTo(look);
+    camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(horizontalSpan / (2 * distance * camera.aspect)));
+    camera.updateProjectionMatrix(); renderer.setSize(w, h, false); render();
   }
   const observer = new ResizeObserver(resize); observer.observe(container);
-  const visibility = () => { if (!document.hidden) render(); };
-  document.addEventListener('visibilitychange', visibility);
-  function schedule() {
-    if (disposed || document.hidden) return;
-    if (!frame) frame = requestAnimationFrame(() => { frame = 0; render(); });
-  }
+  const onVisibility = () => { if (!document.hidden) render(); };
+  const onMotion = () => { reducedMotion = motionQuery.matches; schedule(); };
+  document.addEventListener('visibilitychange', onVisibility); motionQuery.addEventListener('change', onMotion);
   resize(); render();
   return {
     available: true,
     setMode(value) { mode = { ...mode, ...value }; progress = 0; schedule(); },
-    setProgress(value) { progress = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0; schedule(); },
+    setProgress(value) { progress = Number.isFinite(value) ? clamp(value) : 0; schedule(); },
     setPaused(value) { paused = Boolean(value); schedule(); },
+    setLanguage(value) { language = typeof value === 'string' ? value : null; schedule(); },
     reset() { progress = 0; paused = true; schedule(); },
     resize,
     dispose() {
-      disposed = true; observer.disconnect(); document.removeEventListener('visibilitychange', visibility);
+      disposed = true; observer.disconnect(); document.removeEventListener('visibilitychange', onVisibility); motionQuery.removeEventListener('change', onMotion);
       if (frame) cancelAnimationFrame(frame);
-      for (const resource of resources) resource.dispose?.();
-      renderer.dispose(); renderer.domElement.remove();
+      annotations.forEach(({ el }) => el.remove());
+      for (const r of resources) r.dispose?.(); renderer.dispose(); canvas.remove();
     },
   };
 }

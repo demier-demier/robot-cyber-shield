@@ -49,6 +49,8 @@ The projector requires successful authorized controls, all six cases, native DDS
 
 ## Presentation guidance
 
+- The page opens directly into the robot scene. The two primary actions are command tampering and restricted camera access; an authorized mission provides the positive control. Other checks and technical records are available through **Inspect the evidence**.
+- The original procedural robot uses real-time WebGL rendering, locally generated materials and reflections. The request route and authorization boundary are explanatory diagrams, not physical barriers or recorded network packets.
 - Start with permitted operation so the viewer sees the robot and data stream working.
 - Alter a signed command to show why the guard rejects it before movement.
 - Use the camera scenario to explain that controlling motion and reading data are separate permissions.

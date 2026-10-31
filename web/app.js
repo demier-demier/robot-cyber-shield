@@ -12,6 +12,22 @@ const pt = {
  present:'Apresentar ⛶',
  brandSub:'PROTEÇÃO DE COMANDOS E DADOS', source:'Código-fonte ↗', eyebrow:'A PROTEÇÃO, DE UM JEITO QUE DÁ PARA VER', headline:'Controle o robô. Proteja o que ele vê.', intro:'Altere um comando. Tente acessar a câmera. Veja o que passa — e o que é barrado pela proteção.', tour:'Ver demonstração guiada', tourDuration:'5 cenas · cerca de 35 segundos · sem instalar', workcell:'CÉLULA DE TESTE', simulated:'Robô simulado', loading:'Carregando verificador Rust…', illustration:'ILUSTRAÇÃO VISUAL', robotLabel:'ROBÔ MÓVEL / R-01', sceneReady:'Aguardando um comando', normalShort:'Comando válido', normalTag:'Deixe o robô trabalhar', tamperShort:'Alterar comando', tamperTag:'Quebrar a assinatura', cameraShort:'Acessar a câmera', cameraTag:'Tentar ler os dados', replayShort:'Repetir comando', replayTag:'Tentar uma segunda vez', telemetryShort:'Compartilhar dados', telemetryTag:'Só o que é permitido', liveRust:'VERIFICAÇÃO RUST AO VIVO', evidenceLink:'Evidências ↓', request:'O PEDIDO', decision:'A DECISÃO DE SEGURANÇA', waiting:'Aguardando', startHint:'Escolha uma cena ou inicie a demonstração guiada.', outcome:'O QUE CHEGA AO ROBÔ', notRun:'Nenhum pedido executado', initialOutcome:'A animação acompanha o resultado da verificação.', runCase:'Executar esta cena', isolated:'Cada cena inicia uma sessão de demonstração nova.', takeawayInitial:'A proteção fica entre o pedido e o robô. Se uma verificação falhar, o comando não é encaminhado.', moreTests:'Experimente outro teste', speedTest:'Ultrapassar o limite de velocidade', holderTest:'Usar a chave errada', expiredTest:'Usar missão expirada', revokedTest:'Usar permissão revogada', evidenceEyebrow:'POR TRÁS DA DEMONSTRAÇÃO', evidenceTitle:'Um resultado visível. Um motivo verificável.', evidenceIntro:'As verificações de comandos executam o núcleo Rust do projeto no navegador. A cena da câmera mostra evidências registradas de processos ROS 2 reais.', proofCommand:'Comandos assinados, verificados localmente', proofCommandCopy:'Verificações reais de assinatura e política. Dados sintéticos originais. Relógio fixo e estado em memória nesta demo, separados do SQLite persistente do serviço nativo.', proofROS:'Acesso à câmera recusado pelo ROS 2', recorded:'TESTE REGISTRADO', proofLimits:'Robô simulado, limites explícitos', proofLimitsCopy:'A cena 3D ilustra as decisões; não é um teste de hardware nem uma medição de física. Não há conexão com robôs, câmeras ou sistemas de terceiros.', originalFixtures:'DADOS SINTÉTICOS', readResults:'Ver resultados medidos ↗', viewRun:'Inspecionar teste ROS 2 ↗', downloadEvidence:'Baixar esta decisão ↓', technicalDetails:'Evidências técnicas da cena selecionada', portfolio:'Explorar os outros projetos ↗'
 };
+Object.assign(pt, {
+ present:'Modo foco ⛶', source:'Código ↗', eyebrow:'DEMONSTRAÇÃO INTERATIVA DE SEGURANÇA',
+ headline:'Tente assumir o controle.', intro:'Altere um comando. Peça dados privados. Veja onde o acesso é barrado.',
+ tour:'Ver a demonstração', simulated:'ROBÔ SIMULADO', loading:'Carregando verificador…',
+ sceneLabel:'PROTEÇÃO DE COMANDOS E DADOS', illustration:'ILUSTRAÇÃO 3D',
+ request:'PEDIDO RECEBIDO', decision:'DECISÃO DA PROTEÇÃO',
+ tamperShort:'Adulterar o comando', tamperTag:'Alterar uma instrução assinada',
+ cameraShort:'Acessar a câmera', cameraTag:'Pedir dados de sensores restritos',
+ normalShort:'Missão autorizada', visualTiming:'Tempo ilustrativo',
+ boundaryNote:'Rust verifica os comandos ao vivo. O acesso à câmera usa evidência registrada de ROS 2.',
+ evidenceLink:'Inspecionar evidências ↓', evidenceTitle:'O que aconteceu e como verificar',
+ proofCommand:'O que executa no navegador', proofROS:'Acesso à câmera: teste ROS 2 registrado',
+ proofLimitsCopy:'O robô 3D ilustra o resultado. Nenhum robô físico, câmera ou sistema de terceiros está conectado.',
+ moreTests:'Outras verificações', replayShort:'Repetir um comando', telemetryShort:'Reduzir a telemetria',
+ readResults:'Resultados medidos ↗', viewRun:'Teste ROS 2 nativo ↗', technicalDetails:'Registro técnico da decisão', portfolio:'Outros projetos ↗'
+});
 const text = pair => pair[lang === 'pt' ? 1 : 0];
 const t = key => lang === 'pt' ? (pt[key] ?? en[key] ?? key) : (en[key] ?? key);
 const cases = {
@@ -44,9 +60,29 @@ const cases = {
  }
 };
 
+Object.assign(cases.authorized, {
+ title:['Authorized mission.','Missão autorizada.'], code:'velocity: 0.25 m/s · signed',
+ outcome:['Verified commands reach the robot.','Comandos verificados chegam ao robô.'],
+ takeaway:['Now try changing the command or requesting restricted sensor data.','Agora tente alterar o comando ou pedir dados restritos dos sensores.']
+});
+Object.assign(cases.tamper, {
+ title:['Command tampering.','Comando adulterado.'],
+ code:'0.25 → 0.45 m/s\nsignature: unchanged',
+ request:['Same signature. Different command.','Mesma assinatura. Comando diferente.'],
+ outcome:['The altered command never reaches the robot.','O comando adulterado não chega ao robô.'],
+ takeaway:['Its signature no longer matches. The robot receives no movement instruction.','A assinatura não confere. O robô não recebe a instrução de movimento.']
+});
+Object.assign(cases.camera, {
+ title:['Restricted camera access.','Acesso restrito à câmera.'],
+ code:'READ /robot/sensors/raw\nrole: analytics',
+ request:['This role can read status, not raw sensors.','Esta função pode ler o estado, não os sensores brutos.'],
+ outcome:['Camera access refused. Authorized work continues.','Câmera protegida. O trabalho autorizado continua.'],
+ takeaway:['ROS 2 refused the restricted reader. Permitted readers still received their data.','O ROS 2 recusou o leitor restrito. Os leitores autorizados continuaram recebendo dados.']
+});
 function setText(id, value) { $(id).textContent = value; }
 function applyLanguage() {
  document.documentElement.lang = lang;
+ scene?.setLanguage?.(lang);
  document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
  document.querySelectorAll('[data-lang]').forEach(el => { const selected = el.dataset.lang === lang; el.classList.toggle('selected', selected); el.setAttribute('aria-pressed', String(selected)); });
  updateStaticEvidence(); renderResult(); updateControls(); if(lastError)paintFailure();
@@ -185,7 +221,7 @@ $('play-pause').addEventListener('click',()=>{if(!ready)return;if(!result||progr
 document.querySelectorAll('[data-case]').forEach(el=>el.addEventListener('click',()=>selectCase(el.dataset.case,true)));
 document.querySelectorAll('[data-lang]').forEach(el=>el.addEventListener('click',()=>{lang=el.dataset.lang;applyLanguage();}));
 $('progress').addEventListener('input',event=>{running=false;touring=false;progress=Number(event.target.value)/1000;scene?.setPaused(true);renderProgress();updateControls();});
-$('evidence-jump').addEventListener('click',()=>{document.body.classList.remove('presentation-mode');updateControls();scene?.resize();$('evidence-section').scrollIntoView({behavior:reducedMotion?'instant':'smooth'});});
+$('evidence-jump').addEventListener('click',()=>{document.body.classList.remove('presentation-mode');$('evidence-section').open=true;updateControls();scene?.resize();$('evidence-section').scrollIntoView({behavior:reducedMotion?'instant':'smooth'});});
 $('download-evidence').addEventListener('click',()=>{if(!result)return;const blob=new Blob([JSON.stringify(result,null,2)+'\n'],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`robot-shield-${current}-decision.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&running){running=false;touring=false;scene?.setPaused(true);updateControls();}});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'){document.body.classList.remove('presentation-mode');scene?.resize();running=false;touring=false;scene?.setPaused(true);updateControls();}});
