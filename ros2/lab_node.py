@@ -301,7 +301,8 @@ def main():
                 published_at = time.monotonic()
                 if len(report["publish_timings"]) < 128:
                     report["publish_timings"].append({
-                        "sequence": sequence,
+                        "sequence": envelope["request"]["sequence"],
+                        "attempt_index": sequence,
                         "signing_and_publish_ms": round((published_at - signing_started) * 1000, 3),
                         "interval_ms": round((published_at - previous_publish) * 1000, 3) if previous_publish else None,
                     })
