@@ -186,6 +186,10 @@ def run_case(name, binary, workspace, output, env, attack="none", dds=False):
                     "every_command_published_after_discovery_reached_actuator_in_this_run", checks,
                     {"published": published, "allowed": guard.get("allowed_commands"),
                      "executed": driver.get("accepted_commands"),
+                     "guard_denial_reasons": guard.get("decision_reasons", {}),
+                     "driver_rejection_reasons": driver.get("rejection_reasons", {}),
+                     "rejected_receipts": [receipt for receipt in driver.get("command_receipts", [])
+                                           if receipt.get("reason") != "accepted"],
                      "discovery_wait_cycles": reports["planner"].get("discovery_wait_cycles"),
                      "first_publish_elapsed_ms": reports["planner"].get("first_publish_elapsed_ms")})
     else:
