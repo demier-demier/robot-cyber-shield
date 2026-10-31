@@ -1,0 +1,4 @@
+# Recorded evidence hashes bind exact LF-encoded artifact bytes on every OS.
+# Do not let a Windows checkout rewrite the evidence before verification.
+docs/results/*.json text eol=lf
+web/data/*.json text eol=lf
